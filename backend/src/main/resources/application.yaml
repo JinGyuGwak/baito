@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: my-app
+
+  # ---- Datasource (MySQL) ----
+  # Credentials come from environment variables so no secret is committed. The defaults are for local dev only.
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:baito}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # ---- JPA / Hibernate ----
+  jpa:
+    # Use 'validate' (or Flyway/Liquibase migrations) in production; 'update' is a dev convenience.
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    open-in-view: false
+    show-sql: ${JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+
+  # ---- Redis ----
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  # ---- Spring Session (Redis-backed) ----
+  session:
+    store-type: redis
+    timeout: ${SESSION_TIMEOUT:30m}
+
+server:
+  servlet:
+    session:
+      cookie:
+        name: SESSION
+        http-only: true
+        same-site: lax
