@@ -14,9 +14,9 @@ spring:
   jpa:
     # Use 'validate' (or Flyway/Liquibase migrations) in production; 'update' is a dev convenience.
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: update
     open-in-view: false
-    show-sql: ${JPA_SHOW_SQL:false}
+    show-sql: true
     properties:
       hibernate:
         format_sql: true

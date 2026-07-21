@@ -8,6 +8,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,11 +47,11 @@ public class RequiredStaffController {
     public void set(@PathVariable Long groupId,
                     @Valid @RequestBody SetRequiredStaffRequest request,
                     @AuthenticationPrincipal LoginMember loginMember) {
-        List<SetRequiredStaffUseCase.Interval> intervals = request.intervals().stream()
-                .map(i -> new SetRequiredStaffUseCase.Interval(i.startTime(), i.endTime(), i.requiredCount()))
+        List<SetRequiredStaffUseCase.Interval> intervals = request.getIntervals().stream()
+                .map(i -> new SetRequiredStaffUseCase.Interval(i.getStartTime(), i.getEndTime(), i.getRequiredCount()))
                 .toList();
         setRequiredStaffUseCase.setRequiredStaff(new SetRequiredStaffUseCase.Command(
-                groupId, loginMember.getMemberId(), request.workDate(), intervals));
+                groupId, loginMember.getMemberId(), request.getWorkDate(), intervals));
     }
 
     @GetMapping
@@ -60,22 +63,38 @@ public class RequiredStaffController {
                 .toList();
     }
 
-    public record SetRequiredStaffRequest(
-            @NotNull LocalDate workDate,
-            @NotEmpty @Valid List<IntervalRequest> intervals
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SetRequiredStaffRequest {
+        @NotNull
+        private LocalDate workDate;
+        @NotEmpty
+        @Valid
+        private List<IntervalRequest> intervals;
     }
 
-    public record IntervalRequest(
-            @NotNull LocalTime startTime,
-            @NotNull LocalTime endTime,
-            @PositiveOrZero int requiredCount
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class IntervalRequest {
+        @NotNull
+        private LocalTime startTime;
+        @NotNull
+        private LocalTime endTime;
+        @PositiveOrZero
+        private int requiredCount;
     }
 
-    public record RequiredStaffResponse(LocalTime startTime, int requiredCount) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class RequiredStaffResponse {
+        private LocalTime startTime;
+        private int requiredCount;
+
         static RequiredStaffResponse from(RequiredStaffSlot slot) {
-            return new RequiredStaffResponse(slot.startTime(), slot.requiredCount());
+            return new RequiredStaffResponse(slot.getStartTime(), slot.getRequiredCount());
         }
     }
 }

@@ -5,6 +5,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,7 +39,7 @@ public class AuthController {
                             HttpServletRequest httpRequest,
                             HttpServletResponse httpResponse) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.loginId(), request.password()));
+                new UsernamePasswordAuthenticationToken(request.getLoginId(), request.getPassword()));
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
@@ -52,10 +55,24 @@ public class AuthController {
         return MemberInfo.from(loginMember);
     }
 
-    public record LoginRequest(@NotBlank String loginId, @NotBlank String password) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class LoginRequest {
+        @NotBlank
+        private String loginId;
+        @NotBlank
+        private String password;
     }
 
-    public record MemberInfo(Long memberId, String loginId, Role role) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class MemberInfo {
+        private Long memberId;
+        private String loginId;
+        private Role role;
+
         static MemberInfo from(LoginMember member) {
             return new MemberInfo(member.getMemberId(), member.getUsername(), member.getRole());
         }

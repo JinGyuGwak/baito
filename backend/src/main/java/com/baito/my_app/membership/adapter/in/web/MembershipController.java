@@ -3,6 +3,9 @@ package com.baito.my_app.membership.adapter.in.web;
 import com.baito.my_app.common.security.LoginMember;
 import com.baito.my_app.group.domain.WorkGroup;
 import com.baito.my_app.membership.application.port.in.GetJoinedGroupsQuery;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,9 +32,16 @@ public class MembershipController {
                 .toList();
     }
 
-    public record JoinedGroupResponse(Long id, String name, String description) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class JoinedGroupResponse {
+        private Long id;
+        private String name;
+        private String description;
+
         static JoinedGroupResponse from(WorkGroup g) {
-            return new JoinedGroupResponse(g.id(), g.name(), g.description());
+            return new JoinedGroupResponse(g.getId(), g.getName(), g.getDescription());
         }
     }
 }

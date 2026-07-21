@@ -1,5 +1,9 @@
 package com.baito.my_app.invitation.application.port.in;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 public interface CancelInvitationUseCase {
 
     /**
@@ -7,6 +11,11 @@ public interface CancelInvitationUseCase {
      */
     void cancel(Command command);
 
-    record Command(Long invitationId, Long requesterId) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    class Command {
+        private Long invitationId;
+        private Long requesterId;
     }
 }

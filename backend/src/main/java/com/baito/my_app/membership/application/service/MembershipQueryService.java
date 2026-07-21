@@ -26,7 +26,7 @@ public class MembershipQueryService implements GetJoinedGroupsQuery {
     @Override
     public List<WorkGroup> getJoinedGroups(Long memberId) {
         return membershipRepository.findActiveByMemberId(memberId).stream()
-                .map(GroupMembership::groupId)
+                .map(GroupMembership::getGroupId)
                 .map(workGroupRepository::findById)
                 .flatMap(java.util.Optional::stream)
                 .toList();

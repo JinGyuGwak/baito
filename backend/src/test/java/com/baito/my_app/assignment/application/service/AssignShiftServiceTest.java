@@ -155,7 +155,7 @@ class AssignShiftServiceTest {
 
         @Override
         public WorkGroup save(WorkGroup group) {
-            store.put(group.id(), group);
+            store.put(group.getId(), group);
             return group;
         }
 
@@ -166,7 +166,7 @@ class AssignShiftServiceTest {
 
         @Override
         public List<WorkGroup> findByOwnerId(Long ownerId) {
-            return store.values().stream().filter(g -> g.ownerId().equals(ownerId)).toList();
+            return store.values().stream().filter(g -> g.getOwnerId().equals(ownerId)).toList();
         }
     }
 
@@ -176,7 +176,7 @@ class AssignShiftServiceTest {
         @Override
         public GroupMembership save(GroupMembership membership) {
             if (membership.isActive()) {
-                active.add(key(membership.groupId(), membership.memberId()));
+                active.add(key(membership.getGroupId(), membership.getMemberId()));
             }
             return membership;
         }

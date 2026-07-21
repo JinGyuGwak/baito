@@ -29,23 +29,23 @@ public class AvailabilityService implements SetAvailabilityUseCase {
 
     @Override
     public void setAvailability(Command command) {
-        if (!membershipRepository.existsActiveMembership(command.groupId(), command.memberId())) {
-            throw new NotGroupMemberException(command.groupId());
+        if (!membershipRepository.existsActiveMembership(command.getGroupId(), command.getMemberId())) {
+            throw new NotGroupMemberException(command.getGroupId());
         }
 
         // Expand every interval to 30-minute slots; overlapping intervals simply union.
         Set<LocalTime> starts = new LinkedHashSet<>();
-        for (Interval interval : command.intervals()) {
-            starts.addAll(SlotTimes.expand(interval.startTime(), interval.endTime()));
+        for (Interval interval : command.getIntervals()) {
+            starts.addAll(SlotTimes.expand(interval.getStartTime(), interval.getEndTime()));
         }
 
         List<AvailabilitySlot> slots = starts.stream()
-                .map(start -> AvailabilitySlot.of(command.groupId(), command.memberId(), command.workDate(), start))
+                .map(start -> AvailabilitySlot.of(command.getGroupId(), command.getMemberId(), command.getWorkDate(), start))
                 .toList();
 
         // Replace the whole day for this (group, member).
         availabilitySlotRepository.deleteByGroupIdAndMemberIdAndWorkDate(
-                command.groupId(), command.memberId(), command.workDate());
+                command.getGroupId(), command.getMemberId(), command.getWorkDate());
         availabilitySlotRepository.saveAll(slots);
     }
 }

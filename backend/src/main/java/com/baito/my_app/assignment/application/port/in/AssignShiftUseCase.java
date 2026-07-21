@@ -1,5 +1,9 @@
 package com.baito.my_app.assignment.application.port.in;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -14,13 +18,15 @@ public interface AssignShiftUseCase {
      */
     int assign(Command command);
 
-    record Command(
-            Long groupId,
-            Long assignerId,
-            Long memberId,
-            LocalDate workDate,
-            LocalTime startTime,
-            LocalTime endTime
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    class Command {
+        private Long groupId;
+        private Long assignerId;
+        private Long memberId;
+        private LocalDate workDate;
+        private LocalTime startTime;
+        private LocalTime endTime;
     }
 }

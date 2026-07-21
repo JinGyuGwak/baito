@@ -42,50 +42,53 @@ public class InvitationService implements InviteMemberUseCase, CancelInvitationU
 
     @Override
     public Long invite(InviteMemberUseCase.Command command) {
-        WorkGroup group = workGroupRepository.findById(command.groupId())
-                .orElseThrow(() -> new NotGroupOwnerException(command.groupId()));
-        if (!group.isOwnedBy(command.inviterId())) {
-            throw new NotGroupOwnerException(command.groupId());
+        WorkGroup group = workGroupRepository.findById(command.getGroupId())
+                .orElseThrow(() -> new NotGroupOwnerException(command.getGroupId()));
+        if (!group.isOwnedBy(command.getInviterId())) {
+            throw new NotGroupOwnerException(command.getGroupId());
         }
 
-        Member invitee = memberRepository.findByLoginId(command.inviteeLoginId())
+        Member invitee = memberRepository.findByLoginId(command.getInviteeLoginId())
                 .orElseThrow(() -> new InvalidInviteeException(
-                        "존재하지 않는 로그인 ID입니다: " + command.inviteeLoginId()));
+                        "존재하지 않는 로그인 ID입니다: " + command.getInviteeLoginId()));
         if (!invitee.isPartTimer()) {
-            throw new InvalidInviteeException("아르바이트생만 초대할 수 있습니다: " + command.inviteeLoginId());
+            throw new InvalidInviteeException("아르바이트생만 초대할 수 있습니다: " + command.getInviteeLoginId());
         }
-        if (membershipRepository.existsActiveMembership(command.groupId(), invitee.id())) {
-            throw new InvalidInviteeException("이미 그룹에 소속된 아르바이트생입니다: " + command.inviteeLoginId());
+        if (membershipRepository.existsActiveMembership(command.getGroupId(), invitee.getId())) {
+            throw new InvalidInviteeException("이미 그룹에 소속된 아르바이트생입니다: " + command.getInviteeLoginId());
         }
-        if (invitationRepository.existsPendingByGroupIdAndInviteeId(command.groupId(), invitee.id())) {
+        if (invitationRepository.existsPendingByGroupIdAndInviteeId(command.getGroupId(), invitee.getId())) {
             throw new DuplicatePendingInvitationException();
         }
 
-        Invitation invitation = Invitation.create(command.groupId(), command.inviterId(), invitee.id());
-        return invitationRepository.save(invitation).id();
+        Invitation invitation = Invitation.create(command.getGroupId(), command.getInviterId(), invitee.getId());
+        return invitationRepository.save(invitation).getId();
     }
 
     @Override
     public void cancel(CancelInvitationUseCase.Command command) {
-        Invitation invitation = loadInvitation(command.invitationId());
-        if (!invitation.inviterId().equals(command.requesterId())) {
+        Invitation invitation = loadInvitation(command.getInvitationId());
+        if (!invitation.getInviterId().equals(command.getRequesterId())) {
             throw new InvitationAccessDeniedException();
         }
-        invitationRepository.save(invitation.cancel(LocalDateTime.now()));
+        invitation.cancel(LocalDateTime.now());
+        invitationRepository.save(invitation);
     }
 
     @Override
     public void accept(RespondInvitationUseCase.Command command) {
         Invitation invitation = loadInvitationForInvitee(command);
         LocalDateTime now = LocalDateTime.now();
-        invitationRepository.save(invitation.accept(now));
-        activateMembership(invitation.groupId(), invitation.inviteeId(), now);
+        invitation.accept(now);
+        invitationRepository.save(invitation);
+        activateMembership(invitation.getGroupId(), invitation.getInviteeId(), now);
     }
 
     @Override
     public void reject(RespondInvitationUseCase.Command command) {
         Invitation invitation = loadInvitationForInvitee(command);
-        invitationRepository.save(invitation.reject(LocalDateTime.now()));
+        invitation.reject(LocalDateTime.now());
+        invitationRepository.save(invitation);
     }
 
     private Invitation loadInvitation(Long invitationId) {
@@ -94,8 +97,8 @@ public class InvitationService implements InviteMemberUseCase, CancelInvitationU
     }
 
     private Invitation loadInvitationForInvitee(RespondInvitationUseCase.Command command) {
-        Invitation invitation = loadInvitation(command.invitationId());
-        if (!invitation.inviteeId().equals(command.requesterId())) {
+        Invitation invitation = loadInvitation(command.getInvitationId());
+        if (!invitation.getInviteeId().equals(command.getRequesterId())) {
             throw new InvitationAccessDeniedException();
         }
         return invitation;

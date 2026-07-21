@@ -1,6 +1,9 @@
 package com.baito.my_app.member.application.port.in;
 
 import com.baito.my_app.member.domain.Role;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Inbound port: register a new member with a fixed role.
@@ -9,6 +12,13 @@ public interface SignUpUseCase {
 
     Long signUp(Command command);
 
-    record Command(String loginId, String rawPassword, String name, Role role) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    class Command {
+        private String loginId;
+        private String rawPassword;
+        private String name;
+        private Role role;
     }
 }

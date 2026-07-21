@@ -20,6 +20,6 @@ public class MemberUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
         Member member = memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 로그인 ID입니다: " + loginId));
-        return new LoginMember(member.id(), member.loginId(), member.password(), member.role());
+        return new LoginMember(member.getId(), member.getLoginId(), member.getPassword(), member.getRole());
     }
 }

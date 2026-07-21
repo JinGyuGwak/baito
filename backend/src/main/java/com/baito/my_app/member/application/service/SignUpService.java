@@ -22,15 +22,15 @@ public class SignUpService implements SignUpUseCase {
 
     @Override
     public Long signUp(Command command) {
-        if (memberRepository.existsByLoginId(command.loginId())) {
-            throw new DuplicateLoginIdException(command.loginId());
+        if (memberRepository.existsByLoginId(command.getLoginId())) {
+            throw new DuplicateLoginIdException(command.getLoginId());
         }
         Member member = Member.register(
-                command.loginId(),
-                passwordEncryptor.encode(command.rawPassword()),
-                command.name(),
-                command.role()
+                command.getLoginId(),
+                passwordEncryptor.encode(command.getRawPassword()),
+                command.getName(),
+                command.getRole()
         );
-        return memberRepository.save(member).id();
+        return memberRepository.save(member).getId();
     }
 }

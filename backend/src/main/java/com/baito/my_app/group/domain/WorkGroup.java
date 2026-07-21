@@ -1,17 +1,24 @@
 package com.baito.my_app.group.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 /**
  * Domain model for a group / store owned by an OWNER member.
  */
-public record WorkGroup(
-        Long id,
-        Long ownerId,
-        String name,
-        String description,
-        LocalDateTime createdAt
-) {
+@Getter
+@Setter
+@AllArgsConstructor
+public class WorkGroup {
+
+    private Long id;
+    private Long ownerId;
+    private String name;
+    private String description;
+    private LocalDateTime createdAt;
 
     public static WorkGroup create(Long ownerId, String name, String description) {
         return new WorkGroup(null, ownerId, name, description, null);

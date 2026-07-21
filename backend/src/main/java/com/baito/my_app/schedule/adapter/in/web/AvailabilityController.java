@@ -7,6 +7,9 @@ import com.baito.my_app.schedule.domain.AvailabilitySlot;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,11 +46,11 @@ public class AvailabilityController {
     public void set(@PathVariable Long groupId,
                     @Valid @RequestBody SetAvailabilityRequest request,
                     @AuthenticationPrincipal LoginMember loginMember) {
-        List<SetAvailabilityUseCase.Interval> intervals = request.intervals().stream()
-                .map(i -> new SetAvailabilityUseCase.Interval(i.startTime(), i.endTime()))
+        List<SetAvailabilityUseCase.Interval> intervals = request.getIntervals().stream()
+                .map(i -> new SetAvailabilityUseCase.Interval(i.getStartTime(), i.getEndTime()))
                 .toList();
         setAvailabilityUseCase.setAvailability(new SetAvailabilityUseCase.Command(
-                groupId, loginMember.getMemberId(), request.workDate(), intervals));
+                groupId, loginMember.getMemberId(), request.getWorkDate(), intervals));
     }
 
     @GetMapping
@@ -59,21 +62,35 @@ public class AvailabilityController {
                 .toList();
     }
 
-    public record SetAvailabilityRequest(
-            @NotNull LocalDate workDate,
-            @NotEmpty @Valid List<IntervalRequest> intervals
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SetAvailabilityRequest {
+        @NotNull
+        private LocalDate workDate;
+        @NotEmpty
+        @Valid
+        private List<IntervalRequest> intervals;
     }
 
-    public record IntervalRequest(
-            @NotNull LocalTime startTime,
-            @NotNull LocalTime endTime
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class IntervalRequest {
+        @NotNull
+        private LocalTime startTime;
+        @NotNull
+        private LocalTime endTime;
     }
 
-    public record AvailabilityResponse(LocalTime startTime) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class AvailabilityResponse {
+        private LocalTime startTime;
+
         static AvailabilityResponse from(AvailabilitySlot slot) {
-            return new AvailabilityResponse(slot.startTime());
+            return new AvailabilityResponse(slot.getStartTime());
         }
     }
 }

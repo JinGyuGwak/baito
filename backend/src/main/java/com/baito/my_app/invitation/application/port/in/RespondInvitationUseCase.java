@@ -1,5 +1,9 @@
 package com.baito.my_app.invitation.application.port.in;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 public interface RespondInvitationUseCase {
 
     /**
@@ -12,6 +16,11 @@ public interface RespondInvitationUseCase {
      */
     void reject(Command command);
 
-    record Command(Long invitationId, Long requesterId) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    class Command {
+        private Long invitationId;
+        private Long requesterId;
     }
 }

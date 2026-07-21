@@ -1,19 +1,26 @@
 package com.baito.my_app.member.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 /**
  * Domain model for a member. {@code password} holds the already-encoded hash.
  * {@code id} is null until persisted.
  */
-public record Member(
-        Long id,
-        String loginId,
-        String password,
-        String name,
-        Role role,
-        LocalDateTime createdAt
-) {
+@Getter
+@Setter
+@AllArgsConstructor
+public class Member {
+
+    private Long id;
+    private String loginId;
+    private String password;
+    private String name;
+    private Role role;
+    private LocalDateTime createdAt;
 
     /**
      * Factory for a not-yet-persisted member. {@code encodedPassword} must already be hashed.

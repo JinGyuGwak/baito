@@ -50,43 +50,43 @@ public class AssignShiftService implements AssignShiftUseCase {
     @Override
     public int assign(Command command) {
         // 1. Requester must be the group owner.
-        WorkGroup group = workGroupRepository.findById(command.groupId())
-                .orElseThrow(() -> new NotGroupOwnerException(command.groupId()));
-        if (!group.isOwnedBy(command.assignerId())) {
-            throw new NotGroupOwnerException(command.groupId());
+        WorkGroup group = workGroupRepository.findById(command.getGroupId())
+                .orElseThrow(() -> new NotGroupOwnerException(command.getGroupId()));
+        if (!group.isOwnedBy(command.getAssignerId())) {
+            throw new NotGroupOwnerException(command.getGroupId());
         }
 
         // 2. Target must be an active member of the group.
-        if (!membershipRepository.existsActiveMembership(command.groupId(), command.memberId())) {
-            throw new NotGroupMemberException(command.groupId());
+        if (!membershipRepository.existsActiveMembership(command.getGroupId(), command.getMemberId())) {
+            throw new NotGroupMemberException(command.getGroupId());
         }
 
         // 3. Decompose the requested range into 30-minute slots.
-        List<LocalTime> slots = SlotTimes.expand(command.startTime(), command.endTime());
+        List<LocalTime> slots = SlotTimes.expand(command.getStartTime(), command.getEndTime());
 
-        LocalDate date = command.workDate();
+        LocalDate date = command.getWorkDate();
         List<ShiftAssignment> toCreate = new ArrayList<>();
         for (LocalTime slot : slots) {
             // Idempotent: a slot the member is already confirmed for needs no re-check or re-insert.
-            if (shiftAssignmentRepository.existsConfirmed(command.groupId(), command.memberId(), date, slot)) {
+            if (shiftAssignmentRepository.existsConfirmed(command.getGroupId(), command.getMemberId(), date, slot)) {
                 continue;
             }
             // 4. Availability check.
             boolean available = availabilitySlotRepository
-                    .existsByGroupIdAndMemberIdAndWorkDateAndStartTime(command.groupId(), command.memberId(), date, slot);
+                    .existsByGroupIdAndMemberIdAndWorkDateAndStartTime(command.getGroupId(), command.getMemberId(), date, slot);
             if (!available) {
                 throw new ShiftNotAvailableException(date, slot);
             }
             // 5. Quota check (required headcount vs. currently confirmed). No configured slot => 0 required.
             int required = requiredStaffSlotRepository
-                    .findByGroupIdAndWorkDateAndStartTime(command.groupId(), date, slot)
-                    .map(s -> s.requiredCount())
+                    .findByGroupIdAndWorkDateAndStartTime(command.getGroupId(), date, slot)
+                    .map(s -> s.getRequiredCount())
                     .orElse(0);
-            int confirmed = shiftAssignmentRepository.countConfirmed(command.groupId(), date, slot);
+            int confirmed = shiftAssignmentRepository.countConfirmed(command.getGroupId(), date, slot);
             if (confirmed >= required) {
                 throw new StaffQuotaExceededException(date, slot, required);
             }
-            toCreate.add(ShiftAssignment.confirm(command.groupId(), command.memberId(), date, slot, command.assignerId()));
+            toCreate.add(ShiftAssignment.confirm(command.getGroupId(), command.getMemberId(), date, slot, command.getAssignerId()));
         }
 
         // 6. All slots passed — persist. (Note: the count read in step 5 is not row-locked, so under

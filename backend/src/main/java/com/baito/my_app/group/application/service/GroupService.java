@@ -21,8 +21,8 @@ public class GroupService implements CreateGroupUseCase, GetOwnedGroupsQuery {
 
     @Override
     public Long createGroup(Command command) {
-        WorkGroup group = WorkGroup.create(command.ownerId(), command.name(), command.description());
-        return workGroupRepository.save(group).id();
+        WorkGroup group = WorkGroup.create(command.getOwnerId(), command.getName(), command.getDescription());
+        return workGroupRepository.save(group).getId();
     }
 
     @Override
