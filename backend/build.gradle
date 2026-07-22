@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.asciidoctor.jvm.convert' version '4.0.4'
 }
 
 group = 'com.baito'
@@ -15,6 +16,21 @@ java {
 
 repositories {
 	mavenCentral()
+}
+
+// Spring REST Docs generates .adoc snippets here during the test task; asciidoctor then
+// stitches them into the human-readable API document.
+ext {
+	snippetsDir = file("build/generated-snippets")
+}
+
+configurations {
+	asciidoctorExt
+}
+
+// spring-restdocs-asciidoctor 4.x targets AsciidoctorJ 3.x; pin it so the plugin's default (2.5.x) is not used.
+asciidoctorj {
+	version = '3.0.0'
 }
 
 dependencies {
@@ -34,9 +50,44 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'org.springframework.boot:spring-boot-data-jpa-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-mysql'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	outputs.dir snippetsDir
+	// After tests produce the snippets, assemble the HTML docs and publish them into the app's static
+	// resources — so running `./gradlew test` (or Gradle-delegated test runs in the IDE) refreshes the
+	// docs served at /docs/index.html. asciidoctor is finalizedBy copyDocsToStatic (see below).
+	finalizedBy 'asciidoctor'
+}
+
+def asciidoctorTask = tasks.named('asciidoctor') {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	sources {
+		include 'index.adoc'
+	}
+	baseDirFollowsSourceFile()
+	dependsOn test
+}
+
+// Publish the generated HTML into the app's static resources (src/main/resources/static/docs) so it
+// is served at /docs/index.html no matter how the app is launched — the IDE Run button, `./gradlew
+// bootRun`, and the packaged jar all put src/main/resources on the classpath. This copy is a
+// finalizer of asciidoctor, so `./gradlew asciidoctor` regenerates and republishes the docs in one
+// step. (The copied files are generated output — they are git-ignored.)
+def copyDocsToStatic = tasks.register('copyDocsToStatic', Copy) {
+	from(layout.buildDirectory.dir("docs/asciidoc")) // asciidoctor's default output location
+	into layout.projectDirectory.dir("src/main/resources/static/docs")
+}
+asciidoctorTask.configure {
+	finalizedBy copyDocsToStatic
 }
