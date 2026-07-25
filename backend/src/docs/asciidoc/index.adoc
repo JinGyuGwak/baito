@@ -1,9 +1,23 @@
+= 바이토(Baito) API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+:sectlinks:
+:sectnums:
+
+[[overview]]
+== 개요
+
+알바 근무 스케줄 관리 서비스의 REST API 문서입니다. 모든 스니펫은 테스트 코드(Spring REST Docs)로부터 자동 생성되므로 실제 동작과 항상 일치합니다.
 
 [[overview-auth]]
 === 인증 방식
 
-* 세션 쿠키(`SESSION`, Redis 저장) 기반입니다. `POST /api/auth/login` 성공 시 세션이 생성되고, 이후 요청은 쿠키로 인증됩니다.
-* 인증이 필요한 API에 미인증 상태로 접근하면 `401 Unauthorized` 를 반환합니다.
+* 불투명(opaque) 베어러 토큰 기반입니다. `POST /api/auth/login` 성공 시 토큰이 발급되며, 서버는 회원 정보를 암호화해 Redis에 저장합니다. 이후 요청은 `Authorization: Bearer <token>` 헤더로 인증합니다.
+* 로그아웃(`POST /api/auth/logout`) 시 서버가 Redis에서 토큰을 삭제해 즉시 무효화합니다.
+* 인증이 필요한 API에 미인증(토큰 없음/만료/무효) 상태로 접근하면 `401 Unauthorized` 를 반환합니다.
 * 역할(Role)은 `OWNER`(사장)와 `PART_TIMER`(알바) 두 가지이며, 권한이 맞지 않으면 `403 Forbidden` 을 반환합니다.
 
 [[overview-errors]]
@@ -49,13 +63,20 @@ operation::member-sign-up-validation-error[snippets='http-response,response-fiel
 [[auth-login]]
 === 로그인
 
-`POST /api/auth/login` — 인증 불필요. 성공 시 `SESSION` 쿠키가 발급됩니다.
+`POST /api/auth/login` — 인증 불필요. 성공 시 응답 본문의 `token` 을 이후 요청의 `Authorization: Bearer` 헤더에 사용합니다.
 
 operation::auth-login[snippets='http-request,request-fields,http-response,response-fields']
 
 자격증명 오류 예시(401):
 
 operation::auth-login-failed[snippets='http-response,response-fields']
+
+[[auth-logout]]
+=== 로그아웃
+
+`POST /api/auth/logout` — 헤더의 토큰을 무효화합니다. 성공 시 `204 No Content`.
+
+operation::auth-logout[snippets='http-request,request-headers,http-response']
 
 [[auth-me]]
 === 내 정보 조회

@@ -11,11 +11,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,10 +32,11 @@ class AuthControllerTest extends RestDocsSupport {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    @DisplayName("로그인 성공 - 세션 생성 후 회원 정보 반환")
+    @DisplayName("로그인 성공 - 토큰 발급 후 회원 정보 반환")
     void login() throws Exception {
         LoginMember stored = new LoginMember(1L, "owner01", passwordEncoder.encode("password123!"), Role.OWNER);
         given(memberUserDetailsService.loadUserByUsername("owner01")).willReturn(stored);
+        given(authTokenService.issue(any())).willReturn("Zm9vLWJhci1iYXotcXV4LXRva2Vu");
 
         String body = objectMapper.writeValueAsString(Map.of(
                 "loginId", "owner01",
@@ -41,6 +46,7 @@ class AuthControllerTest extends RestDocsSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("Zm9vLWJhci1iYXotcXV4LXRva2Vu"))
                 .andExpect(jsonPath("$.memberId").value(1))
                 .andExpect(jsonPath("$.loginId").value("owner01"))
                 .andExpect(jsonPath("$.role").value("OWNER"))
@@ -49,9 +55,24 @@ class AuthControllerTest extends RestDocsSupport {
                                 fieldWithPath("loginId").description("로그인 ID"),
                                 fieldWithPath("password").description("비밀번호")),
                         responseFields(
+                                fieldWithPath("token").description("이후 요청 시 `Authorization: Bearer` 헤더에 담아 보낼 인증 토큰"),
                                 fieldWithPath("memberId").description("회원 ID"),
                                 fieldWithPath("loginId").description("로그인 ID"),
                                 fieldWithPath("role").description("역할: `OWNER` 또는 `PART_TIMER`"))));
+    }
+
+    @Test
+    @DisplayName("로그아웃 - 토큰 무효화 후 204 반환")
+    void logout() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")
+                        .header("Authorization", "Bearer Zm9vLWJhci1iYXotcXV4LXRva2Vu")
+                        .with(owner()))
+                .andExpect(status().isNoContent())
+                .andDo(document("auth-logout",
+                        requestHeaders(
+                                headerWithName("Authorization").description("`Bearer <token>` 형식의 인증 토큰"))));
+
+        verify(authTokenService).revoke("Zm9vLWJhci1iYXotcXV4LXRva2Vu");
     }
 
     @Test

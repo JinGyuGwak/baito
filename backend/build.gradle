@@ -39,7 +39,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.session:spring-session-data-redis'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -79,15 +78,26 @@ def asciidoctorTask = tasks.named('asciidoctor') {
 	dependsOn test
 }
 
-// Publish the generated HTML into the app's static resources (src/main/resources/static/docs) so it
-// is served at /docs/index.html no matter how the app is launched — the IDE Run button, `./gradlew
-// bootRun`, and the packaged jar all put src/main/resources on the classpath. This copy is a
-// finalizer of asciidoctor, so `./gradlew asciidoctor` regenerates and republishes the docs in one
-// step. (The copied files are generated output — they are git-ignored.)
+// Publish the generated HTML so it is served at /docs/index.html, into TWO locations:
+//
+//  1. src/main/resources/static/docs — the canonical source location. Picked up by the packaged jar,
+//     by clean builds, and by IDE runs (IntelliJ copies src resources to its own output on build).
+//  2. build/resources/main/static/docs — the exact classpath dir a Gradle-launched app serves from
+//     (bootRun / Gradle-delegated IDE runs). processResources runs BEFORE asciidoctor (asciidoctor
+//     depends on test, test on processResources), so it can never sync #2 within the same build — we
+//     write it directly here instead. Because it is an exploded directory, a running `bootRun` app
+//     serves the refreshed file on the next browser reload; a restart is only needed for IDE runs.
+//
+// Both copies are finalizers of asciidoctor, so `./gradlew test` (which is finalizedBy asciidoctor)
+// regenerates and republishes the docs in one step. (Generated output — git-ignored.)
 def copyDocsToStatic = tasks.register('copyDocsToStatic', Copy) {
 	from(layout.buildDirectory.dir("docs/asciidoc")) // asciidoctor's default output location
 	into layout.projectDirectory.dir("src/main/resources/static/docs")
 }
+def copyDocsToBuiltResources = tasks.register('copyDocsToBuiltResources', Copy) {
+	from(layout.buildDirectory.dir("docs/asciidoc"))
+	into layout.buildDirectory.dir("resources/main/static/docs")
+}
 asciidoctorTask.configure {
-	finalizedBy copyDocsToStatic
+	finalizedBy copyDocsToStatic, copyDocsToBuiltResources
 }

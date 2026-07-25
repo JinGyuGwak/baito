@@ -58,7 +58,7 @@ class AssignmentControllerTest extends RestDocsSupport {
                 .andDo(document("assignment-assign",
                         pathParameters(parameterWithName("groupId").description("그룹 ID")),
                         requestFields(
-                                fieldWithPath("memberId").description("배정할 알바 회원 ID"),
+                                fieldWithPath("memberId").description("배정할 알바 회원"),
                                 fieldWithPath("workDate").description("근무 날짜 (yyyy-MM-dd)"),
                                 fieldWithPath("startTime").description("시작 시각 (HH:mm), 30분 단위"),
                                 fieldWithPath("endTime").description("종료 시각 (HH:mm), 30분 단위")),

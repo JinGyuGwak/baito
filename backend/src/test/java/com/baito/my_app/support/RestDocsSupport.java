@@ -1,6 +1,7 @@
 package com.baito.my_app.support;
 
 import com.baito.my_app.common.config.SecurityConfig;
+import com.baito.my_app.common.security.AuthTokenService;
 import com.baito.my_app.common.security.LoginMember;
 import com.baito.my_app.common.security.MemberUserDetailsService;
 import com.baito.my_app.member.domain.Role;
@@ -49,6 +50,10 @@ public abstract class RestDocsSupport {
     // SecurityConfig#authenticationManager depends on this bean; login tests stub it, the rest ignore it.
     @MockitoBean
     protected MemberUserDetailsService memberUserDetailsService;
+
+    // SecurityConfig's bearer-token filter depends on this bean; auth tests stub it, the rest ignore it.
+    @MockitoBean
+    protected AuthTokenService authTokenService;
 
     @BeforeEach
     void setUpMockMvc(WebApplicationContext context, RestDocumentationContextProvider restDocumentation) {

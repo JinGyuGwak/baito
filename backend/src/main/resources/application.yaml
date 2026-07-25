@@ -21,22 +21,20 @@ spring:
       hibernate:
         format_sql: true
 
-  # ---- Redis ----
+  # ---- Redis (auth-token store) ----
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
-  # ---- Spring Session (Redis-backed) ----
-  session:
-    store-type: redis
-    timeout: ${SESSION_TIMEOUT:30m}
-
-server:
-  servlet:
-    session:
-      cookie:
-        name: SESSION
-        http-only: true
-        same-site: lax
+# ---- Auth (opaque bearer token) ----
+# On login an opaque token is issued and the principal is stored, AES-GCM encrypted, in Redis under
+# that token. Clients send it as `Authorization: Bearer <token>`.
+app:
+  auth:
+    token:
+      # Base64-encoded 256-bit AES key. Override in every non-local environment. The default is a
+      # throwaway dev key ("0123456789abcdef0123456789abcdef").
+      secret: ${AUTH_TOKEN_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+      ttl: ${AUTH_TOKEN_TTL:30m}
