@@ -10,6 +10,9 @@ import com.baito.my_app.invitation.domain.InvitationStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,7 +54,7 @@ public class InvitationController {
     public ResponseEntity<InviteResponse> invite(@Valid @RequestBody InviteRequest request,
                                                  @AuthenticationPrincipal LoginMember loginMember) {
         Long id = inviteMemberUseCase.invite(new InviteMemberUseCase.Command(
-                request.groupId(), loginMember.getMemberId(), request.inviteeLoginId()));
+                request.getGroupId(), loginMember.getMemberId(), request.getInviteeLoginId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(new InviteResponse(id));
     }
 
@@ -97,27 +100,38 @@ public class InvitationController {
                 new RespondInvitationUseCase.Command(invitationId, loginMember.getMemberId()));
     }
 
-    public record InviteRequest(
-            @NotNull Long groupId,
-            @NotBlank String inviteeLoginId
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class InviteRequest {
+        @NotNull
+        private Long groupId;
+        @NotBlank
+        private String inviteeLoginId;
     }
 
-    public record InviteResponse(Long invitationId) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class InviteResponse {
+        private Long invitationId;
     }
 
-    public record InvitationResponse(
-            Long id,
-            Long groupId,
-            Long inviterId,
-            Long inviteeId,
-            InvitationStatus status,
-            LocalDateTime createdAt,
-            LocalDateTime respondedAt
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class InvitationResponse {
+        private Long id;
+        private Long groupId;
+        private Long inviterId;
+        private Long inviteeId;
+        private InvitationStatus status;
+        private LocalDateTime createdAt;
+        private LocalDateTime respondedAt;
+
         static InvitationResponse from(Invitation i) {
-            return new InvitationResponse(i.id(), i.groupId(), i.inviterId(), i.inviteeId(),
-                    i.status(), i.createdAt(), i.respondedAt());
+            return new InvitationResponse(i.getId(), i.getGroupId(), i.getInviterId(), i.getInviteeId(),
+                    i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
         }
     }
 }

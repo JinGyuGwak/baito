@@ -1,5 +1,7 @@
 package com.baito.my_app.common.config;
 
+import com.baito.my_app.common.security.AuthTokenService;
+import com.baito.my_app.common.security.BearerTokenAuthenticationFilter;
 import com.baito.my_app.common.security.MemberUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -15,8 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -35,24 +36,19 @@ public class SecurityConfig {
         return new ProviderManager(provider);
     }
 
-    /**
-     * Persists the SecurityContext into the HttpSession, which Spring Session stores in Redis.
-     */
-    @Bean
-    public SecurityContextRepository securityContextRepository() {
-        return new HttpSessionSecurityContextRepository();
-    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           SecurityContextRepository securityContextRepository) throws Exception {
+                                           AuthTokenService authTokenService) throws Exception {
         http
-                // Session-cookie based API consumed by a SPA; CSRF is disabled and the app is expected
-                // to be protected by same-site cookies / gateway. Revisit if browsers post cross-site.
+                // Stateless, opaque bearer-token API consumed by a SPA. Tokens are issued at login and
+                // stored server-side in Redis; CSRF is not applicable without cookies.
                 .csrf(csrf -> csrf.disable())
-                .securityContext(sc -> sc.securityContextRepository(securityContextRepository))
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(new BearerTokenAuthenticationFilter(authTokenService),
+                        UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        // Static REST Docs API documentation, bundled at /static/docs by bootJar.
+                        .requestMatchers("/docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
                         .anyRequest().authenticated())
@@ -61,13 +57,7 @@ public class SecurityConfig {
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     response.setCharacterEncoding("UTF-8");
                     response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\"}");
-                }))
-                .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler((request, response, authentication) ->
-                                response.setStatus(HttpServletResponse.SC_NO_CONTENT))
-                        .invalidateHttpSession(true)
-                        .deleteCookies("SESSION"));
+                }));
         return http.build();
     }
 }

@@ -7,6 +7,9 @@ import com.baito.my_app.group.domain.WorkGroup;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,7 +40,7 @@ public class GroupController {
     public ResponseEntity<CreateGroupResponse> create(@Valid @RequestBody CreateGroupRequest request,
                                                       @AuthenticationPrincipal LoginMember loginMember) {
         Long groupId = createGroupUseCase.createGroup(
-                new CreateGroupUseCase.Command(loginMember.getMemberId(), request.name(), request.description()));
+                new CreateGroupUseCase.Command(loginMember.getMemberId(), request.getName(), request.getDescription()));
         return ResponseEntity.status(HttpStatus.CREATED).body(new CreateGroupResponse(groupId));
     }
 
@@ -48,18 +51,35 @@ public class GroupController {
                 .toList();
     }
 
-    public record CreateGroupRequest(
-            @NotBlank @Size(max = 100) String name,
-            @Size(max = 255) String description
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class CreateGroupRequest {
+        @NotBlank
+        @Size(max = 100)
+        private String name;
+        @Size(max = 255)
+        private String description;
     }
 
-    public record CreateGroupResponse(Long groupId) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class CreateGroupResponse {
+        private Long groupId;
     }
 
-    public record GroupResponse(Long id, String name, String description, LocalDateTime createdAt) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class GroupResponse {
+        private Long id;
+        private String name;
+        private String description;
+        private LocalDateTime createdAt;
+
         static GroupResponse from(WorkGroup g) {
-            return new GroupResponse(g.id(), g.name(), g.description(), g.createdAt());
+            return new GroupResponse(g.getId(), g.getName(), g.getDescription(), g.getCreatedAt());
         }
     }
 }

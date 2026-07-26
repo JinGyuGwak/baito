@@ -6,6 +6,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,22 +29,35 @@ public class MemberController {
     @PostMapping
     public ResponseEntity<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
         Long memberId = signUpUseCase.signUp(new SignUpUseCase.Command(
-                request.loginId(),
-                request.password(),
-                request.name(),
-                request.role()
+                request.getLoginId(),
+                request.getPassword(),
+                request.getName(),
+                request.getRole()
         ));
         return ResponseEntity.status(HttpStatus.CREATED).body(new SignUpResponse(memberId));
     }
 
-    public record SignUpRequest(
-            @NotBlank @Size(max = 50) String loginId,
-            @NotBlank @Size(min = 8, max = 64) String password,
-            @NotBlank @Size(max = 50) String name,
-            @NotNull Role role
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SignUpRequest {
+        @NotBlank
+        @Size(max = 50)
+        private String loginId;
+        @NotBlank
+        @Size(min = 8, max = 64)
+        private String password;
+        @NotBlank
+        @Size(max = 50)
+        private String name;
+        @NotNull
+        private Role role;
     }
 
-    public record SignUpResponse(Long memberId) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SignUpResponse {
+        private Long memberId;
     }
 }

@@ -1,0 +1,381 @@
+{
+  "info": {
+    "name": "바이토(Baito) API",
+    "description": "알바 근무 스케줄 관리 서비스 REST API 컬렉션.\n\n인증: 세션 쿠키(SESSION, Redis) 기반. `POST /api/auth/login` 성공 시 세션 쿠키가 발급되며, Postman 쿠키 자를 통해 이후 요청에 자동으로 첨부됩니다.\n\n역할: OWNER(사장), PART_TIMER(알바).\n\n변수는 컬렉션 Variables 탭에서 관리합니다 (baseUrl, groupId, invitationId, memberId, workDate).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "groupId", "value": "10", "type": "string" },
+    { "key": "invitationId", "value": "50", "type": "string" },
+    { "key": "memberId", "value": "2", "type": "string" },
+    { "key": "workDate", "value": "2026-05-10", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. 인증 (Auth) & 회원 (Member)",
+      "item": [
+        {
+          "name": "회원 가입",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"OWNER\",\n  \"name\": \"홍길동\",\n  \"loginId\": \"owner01\",\n  \"password\": \"password123!\"\n}"
+            },
+            "description": "인증 불필요. 역할(OWNER/PART_TIMER)은 가입 시 고정되며 이후 변경 불가.\n\n- loginId: 로그인 ID (최대 50자, 중복 불가)\n- password: 비밀번호 (8~64자)\n- name: 이름 (최대 50자)\n- role: OWNER(사장) 또는 PART_TIMER(알바)\n\n응답: 201 Created, { memberId }"
+          }
+        },
+        {
+          "name": "로그인",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 로그인 성공 시 memberId를 컬렉션 변수에 저장",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.memberId) {",
+                  "        pm.collectionVariables.set('memberId', body.memberId);",
+                  "    }",
+                  "    // SESSION 쿠키는 Postman 쿠키 자에 자동 저장되어 이후 요청에 첨부됩니다.",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"{{loginId}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "인증 불필요. 성공 시 SESSION 쿠키 발급.\n\n응답: 200 OK, { memberId, loginId, role }\n실패: 401 AUTHENTICATION_FAILED"
+          }
+        },
+        {
+          "name": "내 정보 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "현재 로그인한 회원 정보 반환.\n\n응답: 200 OK, { memberId, loginId, role }\n미인증 시 401."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 그룹 (Group) — 사장 전용",
+      "item": [
+        {
+          "name": "그룹 생성",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.groupId) {",
+                  "        pm.collectionVariables.set('groupId', body.groupId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"강남점\",\n  \"description\": \"강남역 1호점\"\n}"
+            },
+            "description": "OWNER 권한 필요.\n\n- name: 그룹(매장) 이름 (최대 100자)\n- description: 설명 (최대 255자, 선택)\n\n응답: 201 Created, { groupId }"
+          }
+        },
+        {
+          "name": "내 그룹 목록",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups"]
+            },
+            "description": "로그인한 사장이 소유한 그룹 목록.\n\n응답: 200 OK, [ { id, name, description, createdAt } ]"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 초대 (Invitation)",
+      "item": [
+        {
+          "name": "초대 생성 (사장)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.invitationId) {",
+                  "        pm.collectionVariables.set('invitationId', body.invitationId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"groupId\": {{groupId}},\n  \"inviteeLoginId\": \"{{inviteeLoginId}}\"\n}"
+            },
+            "description": "OWNER 권한 필요. 알바의 로그인 ID로 초대.\n\n- groupId: 초대할 그룹 ID\n- inviteeLoginId: 초대받는 알바의 로그인 ID\n\n응답: 201 Created, { invitationId }"
+          }
+        },
+        {
+          "name": "보낸 초대 목록 (사장)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/sent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations", "sent"]
+            },
+            "description": "응답: 200 OK, [ { id, groupId, inviterId, inviteeId, status, createdAt, respondedAt } ]\nstatus: PENDING, ACCEPTED, REJECTED, CANCELLED"
+          }
+        },
+        {
+          "name": "초대 취소 (사장)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/{{invitationId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations", "{{invitationId}}", "cancel"]
+            },
+            "description": "PENDING 초대만 취소 가능.\n\n응답: 204 No Content"
+          }
+        },
+        {
+          "name": "받은 초대 목록 (알바)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/received",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations", "received"]
+            },
+            "description": "PART_TIMER 권한 필요. PENDING 상태만 조회.\n\n응답: 200 OK, [ { id, groupId, inviterId, inviteeId, status, createdAt, respondedAt } ]"
+          }
+        },
+        {
+          "name": "초대 수락 (알바)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/{{invitationId}}/accept",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations", "{{invitationId}}", "accept"]
+            },
+            "description": "수락 시 그룹 멤버십이 생성됨.\n\n응답: 204 No Content"
+          }
+        },
+        {
+          "name": "초대 거절 (알바)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/{{invitationId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invitations", "{{invitationId}}", "reject"]
+            },
+            "description": "응답: 204 No Content"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. 멤버십 (Membership) — 알바 전용",
+      "item": [
+        {
+          "name": "가입한 그룹 목록",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/memberships/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "memberships", "groups"]
+            },
+            "description": "PART_TIMER 가 소속된 그룹 목록.\n\n응답: 200 OK, [ { id, name, description } ]"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. 스케줄 (Schedule)",
+      "item": [
+        {
+          "name": "근무 가능 시간 설정 (알바)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "availability"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workDate\": \"{{workDate}}\",\n  \"intervals\": [\n    {\n      \"startTime\": \"09:00\",\n      \"endTime\": \"12:00\"\n    },\n    {\n      \"startTime\": \"13:00\",\n      \"endTime\": \"18:00\"\n    }\n  ]\n}"
+            },
+            "description": "해당 날짜의 근무 가능 시간을 통째로 교체. 구간은 30분 슬롯으로 분해 저장.\n\n- workDate: 근무 날짜 (yyyy-MM-dd)\n- intervals[].startTime / endTime: HH:mm\n\n응답: 204 No Content"
+          }
+        },
+        {
+          "name": "근무 가능 시간 조회 (알바)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/availability?date={{workDate}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "availability"],
+              "query": [
+                { "key": "date", "value": "{{workDate}}" }
+              ]
+            },
+            "description": "응답: 200 OK, [ { startTime } ] — 근무 가능한 30분 슬롯 시작 시각 (HH:mm:ss)"
+          }
+        },
+        {
+          "name": "필요 인원 설정 (사장)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/required-staff",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "required-staff"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workDate\": \"{{workDate}}\",\n  \"intervals\": [\n    {\n      \"startTime\": \"09:00\",\n      \"endTime\": \"12:00\",\n      \"requiredCount\": 2\n    },\n    {\n      \"startTime\": \"12:00\",\n      \"endTime\": \"14:00\",\n      \"requiredCount\": 3\n    }\n  ]\n}"
+            },
+            "description": "해당 날짜의 필요 인원을 통째로 교체.\n\n- workDate: yyyy-MM-dd\n- intervals[].startTime / endTime: HH:mm\n- intervals[].requiredCount: 필요 인원 수 (0 이상)\n\n응답: 204 No Content"
+          }
+        },
+        {
+          "name": "필요 인원 조회 (사장)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/required-staff?date={{workDate}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "required-staff"],
+              "query": [
+                { "key": "date", "value": "{{workDate}}" }
+              ]
+            },
+            "description": "응답: 200 OK, [ { startTime, requiredCount } ] — 30분 슬롯 단위"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. 근무 배정 (Assignment) — 사장 전용",
+      "item": [
+        {
+          "name": "근무 배정",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/assignments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "assignments"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": {{memberId}},\n  \"workDate\": \"{{workDate}}\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"11:00\"\n}"
+            },
+            "description": "시간 범위를 30분 슬롯으로 나눠 배정. 모든 슬롯이 (근무 가능 시간 + 필요 인원) 조건을 통과해야만 저장되는 all-or-nothing 방식.\n\n- memberId: 배정할 알바 회원 ID\n- workDate: yyyy-MM-dd\n- startTime / endTime: HH:mm, 30분 단위\n\n응답: 200 OK, { assignedSlotCount }\n실패: 409 STAFF_QUOTA_EXCEEDED / SHIFT_NOT_AVAILABLE"
+          }
+        },
+        {
+          "name": "근무 배정 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/assignments?date={{workDate}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "assignments"],
+              "query": [
+                { "key": "date", "value": "{{workDate}}" }
+              ]
+            },
+            "description": "응답: 200 OK, [ { memberId, startTime } ] — 슬롯 시작 시각 (HH:mm:ss)"
+          }
+        }
+      ]
+    }
+  ]
+}

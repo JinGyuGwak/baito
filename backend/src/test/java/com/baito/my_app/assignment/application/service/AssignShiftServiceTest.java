@@ -3,6 +3,7 @@ package com.baito.my_app.assignment.application.service;
 import com.baito.my_app.assignment.application.port.in.AssignShiftUseCase;
 import com.baito.my_app.assignment.application.port.out.ShiftAssignmentRepository;
 import com.baito.my_app.assignment.domain.ShiftAssignment;
+import com.baito.my_app.assignment.domain.ShiftAssignmentStatus;
 import com.baito.my_app.assignment.domain.ShiftNotAvailableException;
 import com.baito.my_app.assignment.domain.StaffQuotaExceededException;
 import com.baito.my_app.group.application.port.out.WorkGroupRepository;
@@ -155,7 +156,7 @@ class AssignShiftServiceTest {
 
         @Override
         public WorkGroup save(WorkGroup group) {
-            store.put(group.id(), group);
+            store.put(group.getId(), group);
             return group;
         }
 
@@ -166,7 +167,7 @@ class AssignShiftServiceTest {
 
         @Override
         public List<WorkGroup> findByOwnerId(Long ownerId) {
-            return store.values().stream().filter(g -> g.ownerId().equals(ownerId)).toList();
+            return store.values().stream().filter(g -> g.getOwnerId().equals(ownerId)).toList();
         }
     }
 
@@ -176,7 +177,7 @@ class AssignShiftServiceTest {
         @Override
         public GroupMembership save(GroupMembership membership) {
             if (membership.isActive()) {
-                active.add(key(membership.groupId(), membership.memberId()));
+                active.add(key(membership.getGroupId(), membership.getMemberId()));
             }
             return membership;
         }
@@ -273,6 +274,14 @@ class AssignShiftServiceTest {
         @Override
         public List<ShiftAssignment> findConfirmedByGroupIdAndWorkDate(Long groupId, LocalDate workDate) {
             return List.copyOf(saved);
+        }
+
+        @Override
+        public List<ShiftAssignment> findConfirmedByMemberIdAndWorkDate(Long memberId, LocalDate workDate) {
+            return saved.stream()
+                    .filter(a -> a.getMemberId().equals(memberId) && a.getWorkDate().equals(workDate)
+                            && a.getStatus() == ShiftAssignmentStatus.CONFIRMED)
+                    .toList();
         }
     }
 }

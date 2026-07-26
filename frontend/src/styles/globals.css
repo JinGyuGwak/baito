@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* 시간표(Shijan) 디자인 토큰 매핑 — Toss/LineWorks 풍, primary #3D6AFF */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 216 23% 13%; /* gray-800 #191F28 */
+    --card: 0 0% 100%;
+    --card-foreground: 216 23% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 23% 13%;
+    --primary: 226 100% 62%; /* #3D6AFF */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%; /* gray-100 #F2F4F6 */
+    --secondary-foreground: 216 23% 13%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 214 11% 47%; /* gray-500 #6B7684 */
+    --accent: 210 20% 96%;
+    --accent-foreground: 216 23% 13%;
+    --destructive: 355 85% 60%; /* danger #F04452 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 13% 94%; /* #EEF0F2 */
+    --input: 210 13% 94%;
+    --ring: 226 100% 62%;
+    --radius: 0.75rem; /* 12px */
+
+    /* 디자인 전용 보조 토큰 (shadcn 스케일 밖) */
+    --bg-soft: 210 20% 97%; /* #F7F8FA */
+    --field: 210 20% 96%; /* input filled bg (gray-100) */
+    --success: 160 84% 39%;
+    --success-bg: 156 60% 94%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

@@ -32,20 +32,20 @@ public class RequiredStaffService implements SetRequiredStaffUseCase {
 
     @Override
     public void setRequiredStaff(Command command) {
-        WorkGroup group = workGroupRepository.findById(command.groupId())
-                .orElseThrow(() -> new NotGroupOwnerException(command.groupId()));
-        if (!group.isOwnedBy(command.ownerId())) {
-            throw new NotGroupOwnerException(command.groupId());
+        WorkGroup group = workGroupRepository.findById(command.getGroupId())
+                .orElseThrow(() -> new NotGroupOwnerException(command.getGroupId()));
+        if (!group.isOwnedBy(command.getOwnerId())) {
+            throw new NotGroupOwnerException(command.getGroupId());
         }
 
         // Expand every interval to 30-minute slots; reject overlaps (a slot appearing in two intervals).
         Map<LocalTime, Integer> countByStart = new LinkedHashMap<>();
-        for (Interval interval : command.intervals()) {
-            if (interval.requiredCount() < 0) {
-                throw new InvalidSlotTimeException("필요 인원은 0 이상이어야 합니다: " + interval.requiredCount());
+        for (Interval interval : command.getIntervals()) {
+            if (interval.getRequiredCount() < 0) {
+                throw new InvalidSlotTimeException("필요 인원은 0 이상이어야 합니다: " + interval.getRequiredCount());
             }
-            for (LocalTime slotStart : SlotTimes.expand(interval.startTime(), interval.endTime())) {
-                if (countByStart.putIfAbsent(slotStart, interval.requiredCount()) != null) {
+            for (LocalTime slotStart : SlotTimes.expand(interval.getStartTime(), interval.getEndTime())) {
+                if (countByStart.putIfAbsent(slotStart, interval.getRequiredCount()) != null) {
                     throw new InvalidSlotTimeException("겹치는 시간대가 있습니다: " + slotStart);
                 }
             }
@@ -53,10 +53,10 @@ public class RequiredStaffService implements SetRequiredStaffUseCase {
 
         List<RequiredStaffSlot> slots = new ArrayList<>();
         countByStart.forEach((start, count) ->
-                slots.add(RequiredStaffSlot.of(command.groupId(), command.workDate(), start, count)));
+                slots.add(RequiredStaffSlot.of(command.getGroupId(), command.getWorkDate(), start, count)));
 
         // Replace the whole day for this group.
-        requiredStaffSlotRepository.deleteByGroupIdAndWorkDate(command.groupId(), command.workDate());
+        requiredStaffSlotRepository.deleteByGroupIdAndWorkDate(command.getGroupId(), command.getWorkDate());
         requiredStaffSlotRepository.saveAll(slots);
     }
 }

@@ -34,3 +34,6 @@ bin/
 ### Logs ###
 *.log
 logs/
+
+# Generated REST Docs HTML (produced by ./gradlew asciidoctor)
+src/main/resources/static/docs/

@@ -1,0 +1,220 @@
+= 바이토(Baito) API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+:sectlinks:
+:sectnums:
+
+[[overview]]
+== 개요
+
+알바 근무 스케줄 관리 서비스의 REST API 문서입니다. 모든 스니펫은 테스트 코드(Spring REST Docs)로부터 자동 생성되므로 실제 동작과 항상 일치합니다.
+
+[[overview-auth]]
+=== 인증 방식
+
+* 불투명(opaque) 베어러 토큰 기반입니다. `POST /api/auth/login` 성공 시 토큰이 발급되며, 서버는 회원 정보를 암호화해 Redis에 저장합니다. 이후 요청은 `Authorization: Bearer <token>` 헤더로 인증합니다.
+* 로그아웃(`POST /api/auth/logout`) 시 서버가 Redis에서 토큰을 삭제해 즉시 무효화합니다.
+* 인증이 필요한 API에 미인증(토큰 없음/만료/무효) 상태로 접근하면 `401 Unauthorized` 를 반환합니다.
+* 역할(Role)은 `OWNER`(사장)와 `PART_TIMER`(알바) 두 가지이며, 권한이 맞지 않으면 `403 Forbidden` 을 반환합니다.
+
+[[overview-errors]]
+=== 공통 에러 응답
+
+모든 에러는 아래 형식을 따릅니다. `code` 는 프론트엔드가 분기에 사용할 수 있는 기계식 문자열입니다.
+
+[source,json]
+----
+{
+  "code": "STAFF_QUOTA_EXCEEDED",
+  "message": "해당 시간대의 필요 인원(1명)이 이미 모두 배정되었습니다: 2026-05-10 09:00"
+}
+----
+
+|===
+| HTTP 상태 | 대표 code | 설명
+
+| 400 | `VALIDATION_ERROR` | 요청 본문 검증 실패
+| 401 | `AUTHENTICATION_FAILED` | 로그인 실패 / 미인증
+| 403 | `NOT_GROUP_OWNER`, `NOT_GROUP_MEMBER` | 권한 없음
+| 404 | `MEMBER_NOT_FOUND`, `GROUP_NOT_FOUND` | 리소스 없음
+| 409 | `DUPLICATE_LOGIN_ID`, `SHIFT_NOT_AVAILABLE`, `STAFF_QUOTA_EXCEEDED` | 상태 충돌
+|===
+
+[[member]]
+== 회원 (Member)
+
+[[member-sign-up]]
+=== 회원 가입
+
+`POST /api/members` — 인증 불필요. 역할은 가입 시 고정되며 이후 변경할 수 없습니다.
+
+operation::member-sign-up[snippets='http-request,request-fields,http-response,response-fields']
+
+검증 실패 예시(400):
+
+operation::member-sign-up-validation-error[snippets='http-response,response-fields']
+
+[[auth]]
+== 인증 (Auth)
+
+[[auth-login]]
+=== 로그인
+
+`POST /api/auth/login` — 인증 불필요. 성공 시 응답 본문의 `token` 을 이후 요청의 `Authorization: Bearer` 헤더에 사용합니다.
+
+operation::auth-login[snippets='http-request,request-fields,http-response,response-fields']
+
+자격증명 오류 예시(401):
+
+operation::auth-login-failed[snippets='http-response,response-fields']
+
+[[auth-logout]]
+=== 로그아웃
+
+`POST /api/auth/logout` — 헤더의 토큰을 무효화합니다. 성공 시 `204 No Content`.
+
+operation::auth-logout[snippets='http-request,request-headers,http-response']
+
+[[auth-me]]
+=== 내 정보 조회
+
+`GET /api/auth/me` — 현재 로그인한 회원 정보를 반환합니다.
+
+operation::auth-me[snippets='http-request,http-response,response-fields']
+
+[[group]]
+== 그룹 (Group) — 사장 전용
+
+[[group-create]]
+=== 그룹 생성
+
+`POST /api/groups` — `OWNER` 권한 필요.
+
+operation::group-create[snippets='http-request,request-fields,http-response,response-fields']
+
+[[group-list]]
+=== 내 그룹 목록
+
+`GET /api/groups` — 로그인한 사장이 소유한 그룹 목록.
+
+operation::group-list[snippets='http-request,http-response,response-fields']
+
+[[invitation]]
+== 초대 (Invitation)
+
+[[invitation-invite]]
+=== 초대 생성 (사장)
+
+`POST /api/invitations` — `OWNER` 권한 필요. 알바의 로그인 ID로 초대합니다.
+
+operation::invitation-invite[snippets='http-request,request-fields,http-response,response-fields']
+
+[[invitation-sent]]
+=== 보낸 초대 목록 (사장)
+
+`GET /api/invitations/sent`
+
+operation::invitation-sent[snippets='http-request,http-response,response-fields']
+
+[[invitation-cancel]]
+=== 초대 취소 (사장)
+
+`POST /api/invitations/{invitationId}/cancel` — `PENDING` 초대만 취소 가능.
+
+operation::invitation-cancel[snippets='http-request,path-parameters,http-response']
+
+[[invitation-received]]
+=== 받은 초대 목록 (알바)
+
+`GET /api/invitations/received` — `PART_TIMER` 권한 필요. `PENDING` 상태만 조회됩니다.
+
+operation::invitation-received[snippets='http-request,http-response,response-fields']
+
+[[invitation-accept]]
+=== 초대 수락 (알바)
+
+`POST /api/invitations/{invitationId}/accept` — 수락 시 그룹 멤버십이 생성됩니다.
+
+operation::invitation-accept[snippets='http-request,path-parameters,http-response']
+
+[[invitation-reject]]
+=== 초대 거절 (알바)
+
+`POST /api/invitations/{invitationId}/reject`
+
+operation::invitation-reject[snippets='http-request,path-parameters,http-response']
+
+[[membership]]
+== 멤버십 (Membership) — 알바 전용
+
+[[membership-groups]]
+=== 가입한 그룹 목록
+
+`GET /api/memberships/groups` — `PART_TIMER` 가 소속된 그룹 목록.
+
+operation::membership-groups[snippets='http-request,http-response,response-fields']
+
+[[schedule]]
+== 스케줄 (Schedule)
+
+[[availability-set]]
+=== 근무 가능 시간 설정 (알바)
+
+`PUT /api/groups/{groupId}/availability` — 해당 날짜의 근무 가능 시간을 통째로 교체합니다. 구간은 30분 슬롯으로 분해되어 저장됩니다.
+
+operation::availability-set[snippets='http-request,path-parameters,request-fields,http-response']
+
+[[availability-get]]
+=== 근무 가능 시간 조회 (알바)
+
+`GET /api/groups/{groupId}/availability?date=yyyy-MM-dd`
+
+operation::availability-get[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
+
+[[required-staff-set]]
+=== 필요 인원 설정 (사장)
+
+`PUT /api/groups/{groupId}/required-staff` — 해당 날짜의 필요 인원을 통째로 교체합니다.
+
+operation::required-staff-set[snippets='http-request,path-parameters,request-fields,http-response']
+
+[[required-staff-get]]
+=== 필요 인원 조회 (사장)
+
+`GET /api/groups/{groupId}/required-staff?date=yyyy-MM-dd`
+
+operation::required-staff-get[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
+
+[[assignment]]
+== 근무 배정 (Assignment) — 사장 전용
+
+[[assignment-assign]]
+=== 근무 배정
+
+`POST /api/groups/{groupId}/assignments` — 시간 범위를 30분 슬롯으로 나눠 배정합니다. 모든 슬롯이 (근무 가능 시간 + 필요 인원) 조건을 통과해야만 저장되는 all-or-nothing 방식입니다.
+
+operation::assignment-assign[snippets='http-request,path-parameters,request-fields,http-response,response-fields']
+
+필요 인원 초과 예시(409):
+
+operation::assignment-assign-quota-exceeded[snippets='http-response,response-fields']
+
+[[assignment-list]]
+=== 근무 배정 조회
+
+`GET /api/groups/{groupId}/assignments?date=yyyy-MM-dd`
+
+operation::assignment-list[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
+
+[[my-assignment]]
+== 내 스케줄 (My Schedule) — 알바 전용
+
+[[my-assignment-list]]
+=== 내 확정 근무 조회
+
+`GET /api/me/assignments?date=yyyy-MM-dd` — 로그인한 알바 본인의 확정 근무를 날짜별로 조회합니다. 소속된 모든 그룹의 배정이 함께 반환됩니다.
+
+operation::my-assignment-list[snippets='http-request,query-parameters,http-response,response-fields']

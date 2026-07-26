@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.asciidoctor.jvm.convert' version '4.0.4'
 }
 
 group = 'com.baito'
@@ -17,21 +18,86 @@ repositories {
 	mavenCentral()
 }
 
+// Spring REST Docs generates .adoc snippets here during the test task; asciidoctor then
+// stitches them into the human-readable API document.
+ext {
+	snippetsDir = file("build/generated-snippets")
+}
+
+configurations {
+	asciidoctorExt
+}
+
+// spring-restdocs-asciidoctor 4.x targets AsciidoctorJ 3.x; pin it so the plugin's default (2.5.x) is not used.
+asciidoctorj {
+	version = '3.0.0'
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.session:spring-session-data-redis'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'org.springframework.boot:spring-boot-data-jpa-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-mysql'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	outputs.dir snippetsDir
+	// After tests produce the snippets, assemble the HTML docs and publish them into the app's static
+	// resources — so running `./gradlew test` (or Gradle-delegated test runs in the IDE) refreshes the
+	// docs served at /docs/index.html. asciidoctor is finalizedBy copyDocsToStatic (see below).
+	finalizedBy 'asciidoctor'
+}
+
+def asciidoctorTask = tasks.named('asciidoctor') {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	sources {
+		include 'index.adoc'
+	}
+	baseDirFollowsSourceFile()
+	dependsOn test
+}
+
+// Publish the generated HTML so it is served at /docs/index.html, into TWO locations:
+//
+//  1. src/main/resources/static/docs — the canonical source location. Picked up by the packaged jar,
+//     by clean builds, and by IDE runs (IntelliJ copies src resources to its own output on build).
+//  2. build/resources/main/static/docs — the exact classpath dir a Gradle-launched app serves from
+//     (bootRun / Gradle-delegated IDE runs). processResources runs BEFORE asciidoctor (asciidoctor
+//     depends on test, test on processResources), so it can never sync #2 within the same build — we
+//     write it directly here instead. Because it is an exploded directory, a running `bootRun` app
+//     serves the refreshed file on the next browser reload; a restart is only needed for IDE runs.
+//
+// Both copies are finalizers of asciidoctor, so `./gradlew test` (which is finalizedBy asciidoctor)
+// regenerates and republishes the docs in one step. (Generated output — git-ignored.)
+def copyDocsToStatic = tasks.register('copyDocsToStatic', Copy) {
+	from(layout.buildDirectory.dir("docs/asciidoc")) // asciidoctor's default output location
+	into layout.projectDirectory.dir("src/main/resources/static/docs")
+}
+def copyDocsToBuiltResources = tasks.register('copyDocsToBuiltResources', Copy) {
+	from(layout.buildDirectory.dir("docs/asciidoc"))
+	into layout.buildDirectory.dir("resources/main/static/docs")
+}
+asciidoctorTask.configure {
+	finalizedBy copyDocsToStatic, copyDocsToBuiltResources
 }

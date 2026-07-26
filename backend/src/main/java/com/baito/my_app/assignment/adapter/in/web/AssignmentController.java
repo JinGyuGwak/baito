@@ -6,6 +6,9 @@ import com.baito.my_app.assignment.domain.ShiftAssignment;
 import com.baito.my_app.common.security.LoginMember;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,8 +42,8 @@ public class AssignmentController {
                                  @Valid @RequestBody AssignRequest request,
                                  @AuthenticationPrincipal LoginMember loginMember) {
         int assigned = assignShiftUseCase.assign(new AssignShiftUseCase.Command(
-                groupId, loginMember.getMemberId(), request.memberId(),
-                request.workDate(), request.startTime(), request.endTime()));
+                groupId, loginMember.getMemberId(), request.getMemberId(),
+                request.getWorkDate(), request.getStartTime(), request.getEndTime()));
         return new AssignResponse(assigned);
     }
 
@@ -53,20 +56,36 @@ public class AssignmentController {
                 .toList();
     }
 
-    public record AssignRequest(
-            @NotNull Long memberId,
-            @NotNull LocalDate workDate,
-            @NotNull LocalTime startTime,
-            @NotNull LocalTime endTime
-    ) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class AssignRequest {
+        @NotNull
+        private Long memberId;
+        @NotNull
+        private LocalDate workDate;
+        @NotNull
+        private LocalTime startTime;
+        @NotNull
+        private LocalTime endTime;
     }
 
-    public record AssignResponse(int assignedSlotCount) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class AssignResponse {
+        private int assignedSlotCount;
     }
 
-    public record AssignmentResponse(Long memberId, LocalTime startTime) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class AssignmentResponse {
+        private Long memberId;
+        private LocalTime startTime;
+
         static AssignmentResponse from(ShiftAssignment a) {
-            return new AssignmentResponse(a.memberId(), a.startTime());
+            return new AssignmentResponse(a.getMemberId(), a.getStartTime());
         }
     }
 }
