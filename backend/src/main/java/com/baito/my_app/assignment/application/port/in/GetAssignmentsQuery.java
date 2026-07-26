@@ -9,4 +9,7 @@ public interface GetAssignmentsQuery {
 
     /** Owner view: confirmed assignments for a group on a date. */
     List<ShiftAssignment> getAssignments(Long groupId, Long ownerId, LocalDate workDate);
+
+    /** Part-timer view: the member's own confirmed assignments on a date, across all their groups. */
+    List<ShiftAssignment> getMyAssignments(Long memberId, LocalDate workDate);
 }

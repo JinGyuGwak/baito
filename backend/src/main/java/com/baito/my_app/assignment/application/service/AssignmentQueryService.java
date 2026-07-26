@@ -34,4 +34,10 @@ public class AssignmentQueryService implements GetAssignmentsQuery {
         }
         return shiftAssignmentRepository.findConfirmedByGroupIdAndWorkDate(groupId, workDate);
     }
+
+    @Override
+    public List<ShiftAssignment> getMyAssignments(Long memberId, LocalDate workDate) {
+        // A member reads their own assignments — no ownership check required.
+        return shiftAssignmentRepository.findConfirmedByMemberIdAndWorkDate(memberId, workDate);
+    }
 }

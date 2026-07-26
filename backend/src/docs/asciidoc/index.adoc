@@ -208,3 +208,13 @@ operation::assignment-assign-quota-exceeded[snippets='http-response,response-fie
 `GET /api/groups/{groupId}/assignments?date=yyyy-MM-dd`
 
 operation::assignment-list[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
+
+[[my-assignment]]
+== 내 스케줄 (My Schedule) — 알바 전용
+
+[[my-assignment-list]]
+=== 내 확정 근무 조회
+
+`GET /api/me/assignments?date=yyyy-MM-dd` — 로그인한 알바 본인의 확정 근무를 날짜별로 조회합니다. 소속된 모든 그룹의 배정이 함께 반환됩니다.
+
+operation::my-assignment-list[snippets='http-request,query-parameters,http-response,response-fields']
