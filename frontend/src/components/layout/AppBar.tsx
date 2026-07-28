@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ interface AppBarProps {
 
 export function AppBar({ navItems, name, roleLabel, onLogout }: AppBarProps) {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
 
   return (
     <header className="flex h-[60px] items-center justify-between border-b border-border bg-white px-7">
@@ -65,9 +66,9 @@ export function AppBar({ navItems, name, roleLabel, onLogout }: AppBarProps) {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onClick={() => navigate('/profile')}>
               <IconSettings size={16} />
-              설정
+              프로필
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onLogout} className="text-[#F04452] focus:text-[#F04452]">

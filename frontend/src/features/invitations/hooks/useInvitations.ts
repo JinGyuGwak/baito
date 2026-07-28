@@ -1,15 +1,23 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiError } from '@/types/api'
 import { membershipKeys } from '@/features/memberships/keys'
 import { invitationApi } from '../api'
 import { invitationKeys } from '../keys'
-import type { CreateInvitationRequest, CreateInvitationResponse, Invitation } from '../types'
+import type {
+  CreateInvitationRequest,
+  CreateInvitationResponse,
+  Invitation,
+  SentInvitationPage,
+  SentInvitationParams,
+} from '../types'
 
-/** GET /api/invitations/sent — 보낸 초대 목록 (OWNER) */
-export function useSentInvitationsQuery() {
-  return useQuery<Invitation[], ApiError>({
-    queryKey: invitationKeys.sent(),
-    queryFn: invitationApi.listSent,
+/** GET /api/invitations/sent — 보낸 초대 목록, 그룹별 + 상태 필터 + 페이징 (OWNER) */
+export function useSentInvitationsQuery(params: SentInvitationParams) {
+  return useQuery<SentInvitationPage, ApiError>({
+    queryKey: invitationKeys.sentList(params),
+    queryFn: () => invitationApi.listSent(params),
+    enabled: Boolean(params.groupId),
+    placeholderData: keepPreviousData,
   })
 }
 

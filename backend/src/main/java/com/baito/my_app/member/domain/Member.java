@@ -29,6 +29,10 @@ public class Member {
         return new Member(null, loginId, encodedPassword, name, role, null);
     }
 
+    public void changeName(String name) {
+        this.name = name;
+    }
+
     public boolean isOwner() {
         return role == Role.OWNER;
     }

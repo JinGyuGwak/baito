@@ -12,6 +12,9 @@ export { invitationKeys } from './keys'
 export type {
   Invitation,
   InvitationStatus,
+  SentInvitation,
+  SentInvitationPage,
+  SentInvitationParams,
   CreateInvitationRequest,
   CreateInvitationResponse,
 } from './types'

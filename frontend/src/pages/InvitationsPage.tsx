@@ -1,18 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/spinner'
-import { IconChevR, IconMail, IconWarn } from '@/components/icons'
+import { IconChevL, IconChevR, IconMail, IconWarn } from '@/components/icons'
 import { ErrorCode } from '@/types/api'
 import { useGroupsQuery } from '@/features/groups'
 import {
   useSentInvitationsQuery,
   useCreateInvitationMutation,
   useCancelInvitationMutation,
-  type Invitation,
   type InvitationStatus,
+  type SentInvitation,
 } from '@/features/invitations'
 import { ScheduleTabs } from '@/features/schedule/components/ScheduleTabs'
 import { toISODate } from '@/features/schedule/lib/date'
@@ -24,7 +24,19 @@ const STATUS_META: Record<InvitationStatus, { label: string; cls: string; dot: s
   CANCELLED: { label: '취소됨', cls: 'bg-secondary text-muted-foreground', dot: '#B0B8C1' },
 }
 
-/** 점주 알바생 초대 관리 — loginId로 초대하고 보낸 초대 목록/상태를 관리. */
+type StatusFilter = InvitationStatus | 'ALL'
+
+const FILTERS: { key: StatusFilter; label: string }[] = [
+  { key: 'ALL', label: '전체' },
+  { key: 'PENDING', label: '대기' },
+  { key: 'ACCEPTED', label: '수락' },
+  { key: 'REJECTED', label: '거절' },
+  { key: 'CANCELLED', label: '취소' },
+]
+
+const PAGE_SIZE = 10
+
+/** 점주 알바생 초대 관리 — loginId로 초대하고 보낸 초대 목록(이름/상태/페이징)을 관리. */
 export function InvitationsPage() {
   const { groupId: groupIdParam } = useParams()
   const groupId = Number(groupIdParam)
@@ -33,11 +45,20 @@ export function InvitationsPage() {
   const groups = useGroupsQuery()
   const groupName = groups.data?.find((g) => g.id === groupId)?.name ?? '매장'
 
-  const sent = useSentInvitationsQuery()
-  const groupInvites = useMemo(
-    () => (sent.data ?? []).filter((inv) => inv.groupId === groupId),
-    [sent.data, groupId],
-  )
+  const [filter, setFilter] = useState<StatusFilter>('ALL')
+  const [page, setPage] = useState(0)
+
+  const sent = useSentInvitationsQuery({
+    groupId,
+    status: filter === 'ALL' ? undefined : filter,
+    page,
+    size: PAGE_SIZE,
+  })
+
+  const changeFilter = (key: StatusFilter) => {
+    setFilter(key)
+    setPage(0)
+  }
 
   if (!Number.isFinite(groupId)) {
     return (
@@ -47,6 +68,10 @@ export function InvitationsPage() {
     )
   }
 
+  const items = sent.data?.content ?? []
+  const totalPages = sent.data?.totalPages ?? 0
+  const totalElements = sent.data?.totalElements ?? 0
+
   return (
     <div className="px-8 pb-10 pt-6">
       <ScheduleTabs groupId={groupId} date={today} active="invitations" />
@@ -55,7 +80,7 @@ export function InvitationsPage() {
         <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
           <span>{groupName}</span>
           <IconChevR size={12} />
-          <span className="font-bold text-foreground">알바생 초대</span>
+          <span className="font-bold text-foreground">알바생 초대관리</span>
         </div>
         <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">알바생 초대 관리</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -66,25 +91,54 @@ export function InvitationsPage() {
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_320px]">
         {/* 보낸 초대 목록 */}
         <div className="rounded-2xl border border-border bg-card">
-          <div className="border-b border-border px-5 py-3.5 text-xs font-bold uppercase tracking-[0.04em] text-muted-foreground">
-            보낸 초대 {groupInvites.length > 0 && `· ${groupInvites.length}`}
+          <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+            <div className="text-xs font-bold uppercase tracking-[0.04em] text-muted-foreground">
+              보낸 초대{totalElements > 0 && ` · ${totalElements}`}
+            </div>
+            {/* 상태 필터 */}
+            <div className="flex gap-1">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => changeFilter(f.key)}
+                  className={[
+                    'rounded-full px-2.5 py-1 text-xs font-bold',
+                    filter === f.key
+                      ? 'bg-foreground text-white'
+                      : 'text-muted-foreground hover:bg-secondary',
+                  ].join(' ')}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
+
           {sent.isPending ? (
-            <div className="p-5">
+            <div className="flex flex-col gap-2 p-5">
+              <div className="h-16 animate-pulse rounded-xl bg-secondary/50" />
               <div className="h-16 animate-pulse rounded-xl bg-secondary/50" />
             </div>
           ) : sent.isError ? (
             <div className="p-8">
               <CenteredMessage title="불러오지 못했어요" text={sent.error.message} />
             </div>
-          ) : groupInvites.length === 0 ? (
+          ) : items.length === 0 ? (
             <div className="px-5 py-14 text-center text-sm text-muted-foreground">
-              아직 보낸 초대가 없어요. 오른쪽에서 알바생을 초대해보세요.
+              {filter === 'ALL'
+                ? '아직 보낸 초대가 없어요. 오른쪽에서 알바생을 초대해보세요.'
+                : '해당 상태의 초대가 없어요.'}
             </div>
           ) : (
-            groupInvites.map((inv, i) => (
-              <InvitationRow key={inv.id} invitation={inv} isLast={i === groupInvites.length - 1} />
-            ))
+            <>
+              {items.map((inv, i) => (
+                <InvitationRow key={inv.id} invitation={inv} isLast={i === items.length - 1} />
+              ))}
+              {totalPages > 1 && (
+                <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+              )}
+            </>
           )}
         </div>
 
@@ -95,9 +149,11 @@ export function InvitationsPage() {
   )
 }
 
-function InvitationRow({ invitation, isLast }: { invitation: Invitation; isLast: boolean }) {
+function InvitationRow({ invitation, isLast }: { invitation: SentInvitation; isLast: boolean }) {
   const cancel = useCancelInvitationMutation()
   const meta = STATUS_META[invitation.status]
+  const displayName = invitation.inviteeName ?? `회원 #${invitation.inviteeId}`
+  const loginId = invitation.inviteeLoginId
 
   return (
     <div className={`flex items-center gap-3 px-5 py-4 ${isLast ? '' : 'border-b border-border'}`}>
@@ -105,10 +161,13 @@ function InvitationRow({ invitation, isLast }: { invitation: Invitation; isLast:
         className="grid h-9 w-9 place-items-center rounded-full text-xs font-bold text-white"
         style={{ background: `hsl(${(invitation.inviteeId * 73) % 360} 60% 62%)` }}
       >
-        {invitation.inviteeId}
+        {displayName.slice(0, 1)}
       </span>
       <div className="flex-1">
-        <div className="text-sm font-bold">알바 회원 #{invitation.inviteeId}</div>
+        <div className="text-sm font-bold">
+          {displayName}
+          {loginId && <span className="ml-1 font-medium text-muted-foreground">({loginId})</span>}
+        </div>
         <div className="text-xs text-muted-foreground">{formatDateTime(invitation.createdAt)}</div>
       </div>
       <span className={`inline-flex h-[26px] items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold ${meta.cls}`}>
@@ -125,6 +184,42 @@ function InvitationRow({ invitation, isLast }: { invitation: Invitation; isLast:
           {cancel.isPending ? <Spinner size={14} /> : '취소'}
         </Button>
       )}
+    </div>
+  )
+}
+
+function Pagination({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number
+  totalPages: number
+  onChange: (page: number) => void
+}) {
+  return (
+    <div className="flex items-center justify-center gap-2 border-t border-border px-5 py-3">
+      <button
+        type="button"
+        onClick={() => onChange(page - 1)}
+        disabled={page === 0}
+        className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-40"
+        aria-label="이전 페이지"
+      >
+        <IconChevL size={16} />
+      </button>
+      <span className="text-[13px] font-bold">
+        {page + 1} <span className="font-medium text-muted-foreground">/ {totalPages}</span>
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(page + 1)}
+        disabled={page >= totalPages - 1}
+        className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-40"
+        aria-label="다음 페이지"
+      >
+        <IconChevR size={16} />
+      </button>
     </div>
   )
 }

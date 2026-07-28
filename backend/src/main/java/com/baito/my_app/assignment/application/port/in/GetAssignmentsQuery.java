@@ -3,13 +3,18 @@ package com.baito.my_app.assignment.application.port.in;
 import com.baito.my_app.assignment.domain.ShiftAssignment;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public interface GetAssignmentsQuery {
 
-    /** Owner view: confirmed assignments for a group on a date. */
-    List<ShiftAssignment> getAssignments(Long groupId, Long ownerId, LocalDate workDate);
+    /** Owner view: confirmed assignments for a group on a date, enriched with member identity. */
+    List<AssignmentDetail> getAssignments(Long groupId, Long ownerId, LocalDate workDate);
 
     /** Part-timer view: the member's own confirmed assignments on a date, across all their groups. */
     List<ShiftAssignment> getMyAssignments(Long memberId, LocalDate workDate);
+
+    /** One confirmed 30-minute slot with the assigned member's name and loginId. */
+    record AssignmentDetail(Long memberId, String memberName, String memberLoginId, LocalTime startTime) {
+    }
 }

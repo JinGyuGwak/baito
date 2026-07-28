@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * A confirmed (or cancelled) assignment of a part-timer to a single 30-minute slot.
+ * A confirmed assignment of a part-timer to a single 30-minute slot.
  */
 @Getter
 @Setter
@@ -22,12 +22,10 @@ public class ShiftAssignment {
     private LocalDate workDate;
     private LocalTime startTime;
     private Long assignedBy;
-    private ShiftAssignmentStatus status;
     private LocalDateTime createdAt;
 
     public static ShiftAssignment confirm(Long groupId, Long memberId, LocalDate workDate,
                                           LocalTime startTime, Long assignedBy) {
-        return new ShiftAssignment(null, groupId, memberId, workDate, startTime, assignedBy,
-                ShiftAssignmentStatus.CONFIRMED, null);
+        return new ShiftAssignment(null, groupId, memberId, workDate, startTime, assignedBy, null);
     }
 }
