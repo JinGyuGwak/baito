@@ -1,6 +1,8 @@
 package com.baito.my_app.invitation.application.service;
 
 import com.baito.my_app.common.domain.PageResult;
+import com.baito.my_app.group.application.port.out.WorkGroupRepository;
+import com.baito.my_app.group.domain.WorkGroup;
 import com.baito.my_app.invitation.application.port.in.GetInvitationsQuery;
 import com.baito.my_app.invitation.application.port.out.InvitationRepository;
 import com.baito.my_app.invitation.domain.Invitation;
@@ -21,11 +23,14 @@ public class InvitationQueryService implements GetInvitationsQuery {
 
     private final InvitationRepository invitationRepository;
     private final MemberRepository memberRepository;
+    private final WorkGroupRepository workGroupRepository;
 
     public InvitationQueryService(InvitationRepository invitationRepository,
-                                  MemberRepository memberRepository) {
+                                  MemberRepository memberRepository,
+                                  WorkGroupRepository workGroupRepository) {
         this.invitationRepository = invitationRepository;
         this.memberRepository = memberRepository;
+        this.workGroupRepository = workGroupRepository;
     }
 
     @Override
@@ -47,7 +52,22 @@ public class InvitationQueryService implements GetInvitationsQuery {
     }
 
     @Override
-    public List<Invitation> getReceivedPendingInvitations(Long inviteeId) {
-        return invitationRepository.findPendingByInviteeId(inviteeId);
+    public List<ReceivedInvitation> getReceivedPendingInvitations(Long inviteeId) {
+        List<Invitation> invitations = invitationRepository.findPendingByInviteeId(inviteeId);
+
+        Map<Long, WorkGroup> groupsById = workGroupRepository.findAllByIds(
+                        invitations.stream().map(Invitation::getGroupId).distinct().toList()).stream()
+                .collect(Collectors.toMap(WorkGroup::getId, Function.identity()));
+        Map<Long, Member> invitersById = memberRepository.findAllByIds(
+                        invitations.stream().map(Invitation::getInviterId).distinct().toList()).stream()
+                .collect(Collectors.toMap(Member::getId, Function.identity()));
+
+        return invitations.stream().map(inv -> {
+            WorkGroup group = groupsById.get(inv.getGroupId());
+            Member inviter = invitersById.get(inv.getInviterId());
+            return new ReceivedInvitation(inv,
+                    group != null ? group.getName() : null,
+                    inviter != null ? inviter.getName() : null);
+        }).toList();
     }
 }

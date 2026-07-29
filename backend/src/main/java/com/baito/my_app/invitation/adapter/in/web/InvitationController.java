@@ -166,15 +166,18 @@ public class InvitationController {
     public static class InvitationResponse {
         private Long id;
         private Long groupId;
+        private String groupName;
         private Long inviterId;
+        private String inviterName;
         private Long inviteeId;
         private InvitationStatus status;
         private LocalDateTime createdAt;
         private LocalDateTime respondedAt;
 
-        static InvitationResponse from(Invitation i) {
-            return new InvitationResponse(i.getId(), i.getGroupId(), i.getInviterId(), i.getInviteeId(),
-                    i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
+        static InvitationResponse from(GetInvitationsQuery.ReceivedInvitation r) {
+            Invitation i = r.invitation();
+            return new InvitationResponse(i.getId(), i.getGroupId(), r.groupName(), i.getInviterId(),
+                    r.inviterName(), i.getInviteeId(), i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
         }
     }
 }

@@ -165,6 +165,11 @@ class AssignShiftServiceTest {
         }
 
         @Override
+        public List<WorkGroup> findAllByIds(java.util.Collection<Long> ids) {
+            return ids.stream().map(store::get).filter(java.util.Objects::nonNull).toList();
+        }
+
+        @Override
         public List<WorkGroup> findByOwnerId(Long ownerId) {
             return store.values().stream().filter(g -> g.getOwnerId().equals(ownerId)).toList();
         }

@@ -4,6 +4,7 @@ import com.baito.my_app.group.application.port.out.WorkGroupRepository;
 import com.baito.my_app.group.domain.WorkGroup;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,13 @@ public class WorkGroupPersistenceAdapter implements WorkGroupRepository {
     @Override
     public Optional<WorkGroup> findById(Long id) {
         return jpaRepository.findById(id).map(WorkGroupPersistenceAdapter::toDomain);
+    }
+
+    @Override
+    public List<WorkGroup> findAllByIds(Collection<Long> ids) {
+        return jpaRepository.findAllById(ids).stream()
+                .map(WorkGroupPersistenceAdapter::toDomain)
+                .toList();
     }
 
     @Override

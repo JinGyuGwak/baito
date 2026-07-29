@@ -5,8 +5,12 @@ export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED'
 export interface Invitation {
   id: number
   groupId: number
+  /** 그룹명 (조회 실패 시 null) */
+  groupName: string | null
   /** 초대한 사장 회원 ID */
   inviterId: number
+  /** 초대한 사장 이름 (조회 실패 시 null) */
+  inviterName: string | null
   /** 초대받은 알바 회원 ID */
   inviteeId: number
   status: InvitationStatus

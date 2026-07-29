@@ -118,20 +118,26 @@ class InvitationControllerTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("받은 초대 목록 조회 - PART_TIMER (PENDING 상태만)")
+    @DisplayName("받은 초대 목록 조회 - PART_TIMER (PENDING 상태만), 그룹명/초대한 점주 이름 포함")
     void received() throws Exception {
         given(getInvitationsQuery.getReceivedPendingInvitations(2L)).willReturn(List.of(
-                new Invitation(50L, 10L, 1L, 2L, InvitationStatus.PENDING,
-                        LocalDateTime.of(2026, 5, 1, 9, 0), null)));
+                new GetInvitationsQuery.ReceivedInvitation(
+                        new Invitation(50L, 10L, 1L, 2L, InvitationStatus.PENDING,
+                                LocalDateTime.of(2026, 5, 1, 9, 0), null),
+                        "강남점", "박점주")));
 
         mockMvc.perform(get("/api/invitations/received").with(partTimer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(50))
+                .andExpect(jsonPath("$[0].groupName").value("강남점"))
+                .andExpect(jsonPath("$[0].inviterName").value("박점주"))
                 .andDo(document("invitation-received",
                         responseFields(
                                 fieldWithPath("[].id").description("초대 ID"),
                                 fieldWithPath("[].groupId").description("그룹 ID"),
+                                fieldWithPath("[].groupName").optional().description("그룹명 (조회 실패 시 null)"),
                                 fieldWithPath("[].inviterId").description("초대한 사장 회원 ID"),
+                                fieldWithPath("[].inviterName").optional().description("초대한 사장 이름 (조회 실패 시 null)"),
                                 fieldWithPath("[].inviteeId").description("초대받은 알바 회원 ID"),
                                 fieldWithPath("[].status").description("상태 (항상 `PENDING`)"),
                                 fieldWithPath("[].createdAt").description("생성 일시"),

@@ -2,6 +2,7 @@ package com.baito.my_app.schedule.adapter.out.persistence;
 
 import com.baito.my_app.schedule.application.port.out.RequiredStaffSlotRepository;
 import com.baito.my_app.schedule.domain.RequiredStaffSlot;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;

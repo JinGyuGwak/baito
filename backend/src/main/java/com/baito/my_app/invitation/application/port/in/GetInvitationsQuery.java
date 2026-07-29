@@ -17,10 +17,17 @@ public interface GetInvitationsQuery {
     PageResult<SentInvitation> getSentInvitations(Long inviterId, Long groupId, InvitationStatus status,
                                                   int page, int size);
 
-    /** Pending invitations received by a part-timer. */
-    List<Invitation> getReceivedPendingInvitations(Long inviteeId);
+    /**
+     * Pending invitations received by a part-timer, enriched with the group's name and the
+     * inviting owner's name for display.
+     */
+    List<ReceivedInvitation> getReceivedPendingInvitations(Long inviteeId);
 
     /** A sent invitation joined with the invitee's identity for display. */
     record SentInvitation(Invitation invitation, String inviteeName, String inviteeLoginId) {
+    }
+
+    /** A received invitation joined with the group name and inviting owner's name for display. */
+    record ReceivedInvitation(Invitation invitation, String groupName, String inviterName) {
     }
 }
