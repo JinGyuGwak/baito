@@ -307,5 +307,16 @@ class AssignShiftServiceTest {
             saved.removeAll(toDelete);
             return toDelete.size();
         }
+
+        @Override
+        public int deleteConfirmedInSlotsForAllMembers(Long groupId, LocalDate workDate,
+                                                       List<LocalTime> startTimes) {
+            List<ShiftAssignment> toDelete = saved.stream()
+                    .filter(a -> a.getGroupId().equals(groupId)
+                            && a.getWorkDate().equals(workDate) && startTimes.contains(a.getStartTime()))
+                    .toList();
+            saved.removeAll(toDelete);
+            return toDelete.size();
+        }
     }
 }

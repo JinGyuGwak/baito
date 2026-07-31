@@ -25,4 +25,10 @@ public interface ShiftAssignmentJpaRepository extends JpaRepository<ShiftAssignm
             + "and a.workDate = :workDate and a.startTime in :startTimes")
     int deleteInSlots(@Param("groupId") Long groupId, @Param("memberId") Long memberId,
                       @Param("workDate") LocalDate workDate, @Param("startTimes") List<LocalTime> startTimes);
+
+    @Modifying
+    @Query("delete from ShiftAssignmentJpaEntity a where a.groupId = :groupId "
+            + "and a.workDate = :workDate and a.startTime in :startTimes")
+    int deleteInSlotsForAllMembers(@Param("groupId") Long groupId, @Param("workDate") LocalDate workDate,
+                                   @Param("startTimes") List<LocalTime> startTimes);
 }

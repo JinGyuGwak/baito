@@ -79,4 +79,31 @@ class ShiftAssignmentPersistenceAdapterTest extends PersistenceTestSupport {
         assertThat(repository.countConfirmed(GROUP_ID, DATE, LocalTime.of(9, 30))).isZero();
         assertThat(repository.countConfirmed(GROUP_ID, DATE, LocalTime.of(11, 0))).isEqualTo(1); // 범위 밖은 유지
     }
+
+    @Test
+    @DisplayName("deleteConfirmedInSlotsForAllMembers - 지정 슬롯의 모든 회원 확정 배정을 삭제한다")
+    void deleteConfirmedInSlotsForAllMembers() {
+        repository.saveAll(List.of(
+                confirmed(2L, LocalTime.of(10, 30)),
+                confirmed(3L, LocalTime.of(10, 30)),
+                confirmed(2L, LocalTime.of(9, 0)))); // 사라지지 않은 슬롯
+
+        int deleted = repository.deleteConfirmedInSlotsForAllMembers(
+                GROUP_ID, DATE, List.of(LocalTime.of(10, 30)));
+
+        assertThat(deleted).isEqualTo(2);
+        assertThat(repository.countConfirmed(GROUP_ID, DATE, LocalTime.of(10, 30))).isZero();
+        assertThat(repository.countConfirmed(GROUP_ID, DATE, LocalTime.of(9, 0))).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("deleteConfirmedInSlotsForAllMembers - 빈 슬롯 목록이면 아무것도 삭제하지 않는다")
+    void deleteConfirmedInSlotsForAllMembers_emptyList() {
+        repository.saveAll(List.of(confirmed(2L, LocalTime.of(10, 30))));
+
+        int deleted = repository.deleteConfirmedInSlotsForAllMembers(GROUP_ID, DATE, List.of());
+
+        assertThat(deleted).isZero();
+        assertThat(repository.countConfirmed(GROUP_ID, DATE, LocalTime.of(10, 30))).isEqualTo(1);
+    }
 }

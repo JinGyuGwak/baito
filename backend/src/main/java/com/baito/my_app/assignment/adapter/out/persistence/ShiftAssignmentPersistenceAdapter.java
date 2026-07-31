@@ -53,6 +53,14 @@ public class ShiftAssignmentPersistenceAdapter implements ShiftAssignmentReposit
         return jpaRepository.deleteInSlots(groupId, memberId, workDate, startTimes);
     }
 
+    @Override
+    public int deleteConfirmedInSlotsForAllMembers(Long groupId, LocalDate workDate, List<LocalTime> startTimes) {
+        if (startTimes.isEmpty()) {
+            return 0;
+        }
+        return jpaRepository.deleteInSlotsForAllMembers(groupId, workDate, startTimes);
+    }
+
     private static ShiftAssignmentJpaEntity toEntity(ShiftAssignment a) {
         return new ShiftAssignmentJpaEntity(
                 a.getId(), a.getGroupId(), a.getMemberId(), a.getWorkDate(), a.getStartTime(),

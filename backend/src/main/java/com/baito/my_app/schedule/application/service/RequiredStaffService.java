@@ -1,5 +1,6 @@
 package com.baito.my_app.schedule.application.service;
 
+import com.baito.my_app.assignment.application.port.out.ShiftAssignmentRepository;
 import com.baito.my_app.common.domain.SlotTimes;
 import com.baito.my_app.common.exception.InvalidSlotTimeException;
 import com.baito.my_app.group.application.port.out.WorkGroupRepository;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -23,11 +25,14 @@ public class RequiredStaffService implements SetRequiredStaffUseCase {
 
     private final WorkGroupRepository workGroupRepository;
     private final RequiredStaffSlotRepository requiredStaffSlotRepository;
+    private final ShiftAssignmentRepository shiftAssignmentRepository;
 
     public RequiredStaffService(WorkGroupRepository workGroupRepository,
-                                RequiredStaffSlotRepository requiredStaffSlotRepository) {
+                                RequiredStaffSlotRepository requiredStaffSlotRepository,
+                                ShiftAssignmentRepository shiftAssignmentRepository) {
         this.workGroupRepository = workGroupRepository;
         this.requiredStaffSlotRepository = requiredStaffSlotRepository;
+        this.shiftAssignmentRepository = shiftAssignmentRepository;
     }
 
     @Override
@@ -55,8 +60,20 @@ public class RequiredStaffService implements SetRequiredStaffUseCase {
         countByStart.forEach((start, count) ->
                 slots.add(RequiredStaffSlot.of(command.getGroupId(), command.getWorkDate(), start, count)));
 
+        // A slot that existed before but is absent from the new configuration is "removed" (its time was
+        // changed or the slot was deleted). Any staff already assigned to such a slot would otherwise be
+        // orphaned, so we clear those assignments together with the old required-staff rows before re-inserting.
+        Set<LocalTime> newStarts = countByStart.keySet();
+        List<LocalTime> removedSlots = requiredStaffSlotRepository
+                .findByGroupIdAndWorkDate(command.getGroupId(), command.getWorkDate()).stream()
+                .map(RequiredStaffSlot::getStartTime)
+                .filter(start -> !newStarts.contains(start))
+                .toList();
+
         // Replace the whole day for this group.
         requiredStaffSlotRepository.deleteByGroupIdAndWorkDate(command.getGroupId(), command.getWorkDate());
+        shiftAssignmentRepository.deleteConfirmedInSlotsForAllMembers(
+                command.getGroupId(), command.getWorkDate(), removedSlots);
         requiredStaffSlotRepository.saveAll(slots);
     }
 }

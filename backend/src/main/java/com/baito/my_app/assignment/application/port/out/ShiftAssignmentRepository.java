@@ -30,4 +30,12 @@ public interface ShiftAssignmentRepository {
      * @return the number of rows deleted
      */
     int deleteConfirmedInSlots(Long groupId, Long memberId, LocalDate workDate, List<LocalTime> startTimes);
+
+    /**
+     * Deletes every member's CONFIRMED assignments for the given slot start times on a date.
+     * Used to keep assignments consistent when the required-staff configuration removes/changes a slot.
+     *
+     * @return the number of rows deleted
+     */
+    int deleteConfirmedInSlotsForAllMembers(Long groupId, LocalDate workDate, List<LocalTime> startTimes);
 }
