@@ -28,4 +28,9 @@ public class GroupMembership {
     public boolean isActive() {
         return status == MembershipStatus.ACTIVE;
     }
+
+    /** Kicked from the group (or left) — keeps the row for history, blocks further scheduling. */
+    public void deactivate() {
+        this.status = MembershipStatus.INACTIVE;
+    }
 }

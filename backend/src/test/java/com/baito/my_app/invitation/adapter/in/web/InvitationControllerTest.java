@@ -1,5 +1,6 @@
 package com.baito.my_app.invitation.adapter.in.web;
 
+import com.baito.my_app.common.domain.PageResult;
 import com.baito.my_app.invitation.application.port.in.CancelInvitationUseCase;
 import com.baito.my_app.invitation.application.port.in.GetInvitationsQuery;
 import com.baito.my_app.invitation.application.port.in.InviteMemberUseCase;
@@ -25,6 +26,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.requestF
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,24 +67,45 @@ class InvitationControllerTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("보낸 초대 목록 조회 - OWNER")
+    @DisplayName("보낸 초대 목록 조회 - OWNER, 그룹별 + 상태 필터 + 페이징, 초대받은 알바 이름 포함")
     void sent() throws Exception {
-        given(getInvitationsQuery.getSentInvitations(1L)).willReturn(List.of(
-                new Invitation(50L, 10L, 1L, 2L, InvitationStatus.PENDING,
-                        LocalDateTime.of(2026, 5, 1, 9, 0), null)));
+        given(getInvitationsQuery.getSentInvitations(1L, 10L, InvitationStatus.PENDING, 0, 10))
+                .willReturn(new PageResult<>(List.of(
+                        new GetInvitationsQuery.SentInvitation(
+                                new Invitation(50L, 10L, 1L, 2L, InvitationStatus.PENDING,
+                                        LocalDateTime.of(2026, 5, 1, 9, 0), null),
+                                "김알바", "worker01")),
+                        0, 10, 1, 1));
 
-        mockMvc.perform(get("/api/invitations/sent").with(owner()))
+        mockMvc.perform(get("/api/invitations/sent").with(owner())
+                        .param("groupId", "10")
+                        .param("status", "PENDING")
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(50))
+                .andExpect(jsonPath("$.content[0].id").value(50))
+                .andExpect(jsonPath("$.content[0].inviteeName").value("김알바"))
+                .andExpect(jsonPath("$.totalElements").value(1))
                 .andDo(document("invitation-sent",
+                        queryParameters(
+                                parameterWithName("groupId").description("조회할 그룹 ID"),
+                                parameterWithName("status").optional()
+                                        .description("상태 필터: `PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED` (생략 시 전체)"),
+                                parameterWithName("page").optional().description("페이지 번호 (0부터, 기본 0)"),
+                                parameterWithName("size").optional().description("페이지 크기 (기본 10)")),
                         responseFields(
-                                fieldWithPath("[].id").description("초대 ID"),
-                                fieldWithPath("[].groupId").description("그룹 ID"),
-                                fieldWithPath("[].inviterId").description("초대한 사장 회원 ID"),
-                                fieldWithPath("[].inviteeId").description("초대받은 알바 회원 ID"),
-                                fieldWithPath("[].status").description("상태: `PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED`"),
-                                fieldWithPath("[].createdAt").description("생성 일시"),
-                                fieldWithPath("[].respondedAt").optional().description("응답 일시 (미응답 시 null)"))));
+                                fieldWithPath("content[].id").description("초대 ID"),
+                                fieldWithPath("content[].groupId").description("그룹 ID"),
+                                fieldWithPath("content[].inviteeId").description("초대받은 알바 회원 ID"),
+                                fieldWithPath("content[].inviteeName").description("초대받은 알바 이름"),
+                                fieldWithPath("content[].inviteeLoginId").description("초대받은 알바 로그인 ID"),
+                                fieldWithPath("content[].status").description("상태: `PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED`"),
+                                fieldWithPath("content[].createdAt").description("생성 일시"),
+                                fieldWithPath("content[].respondedAt").optional().description("응답 일시 (미응답 시 null)"),
+                                fieldWithPath("page").description("현재 페이지 번호 (0부터)"),
+                                fieldWithPath("size").description("페이지 크기"),
+                                fieldWithPath("totalElements").description("전체 건수"),
+                                fieldWithPath("totalPages").description("전체 페이지 수"))));
     }
 
     @Test
@@ -95,20 +118,26 @@ class InvitationControllerTest extends RestDocsSupport {
     }
 
     @Test
-    @DisplayName("받은 초대 목록 조회 - PART_TIMER (PENDING 상태만)")
+    @DisplayName("받은 초대 목록 조회 - PART_TIMER (PENDING 상태만), 그룹명/초대한 점주 이름 포함")
     void received() throws Exception {
         given(getInvitationsQuery.getReceivedPendingInvitations(2L)).willReturn(List.of(
-                new Invitation(50L, 10L, 1L, 2L, InvitationStatus.PENDING,
-                        LocalDateTime.of(2026, 5, 1, 9, 0), null)));
+                new GetInvitationsQuery.ReceivedInvitation(
+                        new Invitation(50L, 10L, 1L, 2L, InvitationStatus.PENDING,
+                                LocalDateTime.of(2026, 5, 1, 9, 0), null),
+                        "강남점", "박점주")));
 
         mockMvc.perform(get("/api/invitations/received").with(partTimer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(50))
+                .andExpect(jsonPath("$[0].groupName").value("강남점"))
+                .andExpect(jsonPath("$[0].inviterName").value("박점주"))
                 .andDo(document("invitation-received",
                         responseFields(
                                 fieldWithPath("[].id").description("초대 ID"),
                                 fieldWithPath("[].groupId").description("그룹 ID"),
+                                fieldWithPath("[].groupName").optional().description("그룹명 (조회 실패 시 null)"),
                                 fieldWithPath("[].inviterId").description("초대한 사장 회원 ID"),
+                                fieldWithPath("[].inviterName").optional().description("초대한 사장 이름 (조회 실패 시 null)"),
                                 fieldWithPath("[].inviteeId").description("초대받은 알바 회원 ID"),
                                 fieldWithPath("[].status").description("상태 (항상 `PENDING`)"),
                                 fieldWithPath("[].createdAt").description("생성 일시"),

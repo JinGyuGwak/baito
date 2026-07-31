@@ -1,5 +1,11 @@
 import { apiClient } from '@/lib/api-client'
-import type { CreateInvitationRequest, CreateInvitationResponse, Invitation } from './types'
+import type {
+  CreateInvitationRequest,
+  CreateInvitationResponse,
+  Invitation,
+  SentInvitationPage,
+  SentInvitationParams,
+} from './types'
 
 export const invitationApi = {
   /** POST /api/invitations — 초대 생성 (OWNER) */
@@ -8,9 +14,16 @@ export const invitationApi = {
     return data
   },
 
-  /** GET /api/invitations/sent — 보낸 초대 목록 (OWNER) */
-  listSent: async (): Promise<Invitation[]> => {
-    const { data } = await apiClient.get<Invitation[]>('/invitations/sent')
+  /** GET /api/invitations/sent — 보낸 초대 목록, 그룹별 + 상태 필터 + 페이징 (OWNER) */
+  listSent: async (params: SentInvitationParams): Promise<SentInvitationPage> => {
+    const { data } = await apiClient.get<SentInvitationPage>('/invitations/sent', {
+      params: {
+        groupId: params.groupId,
+        status: params.status,
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+      },
+    })
     return data
   },
 

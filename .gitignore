@@ -15,6 +15,6 @@
 
 # Build outputs
 build/
-out/
+/out/
 dist/
 node_modules/

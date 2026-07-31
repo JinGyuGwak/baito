@@ -12,3 +12,16 @@ export interface SignUpRequest {
 export interface SignUpResponse {
   memberId: number
 }
+
+/** GET /api/members/me — 응답 (내 프로필) */
+export interface MyProfile {
+  memberId: number
+  loginId: string
+  name: string
+  role: Role
+}
+
+/** PATCH /api/members/me — 요청 (이름 변경) */
+export interface UpdateNameRequest {
+  name: string
+}

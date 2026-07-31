@@ -1,6 +1,9 @@
 import { apiClient } from '@/lib/api-client'
 import type {
+  AssignmentCandidate,
   AssignmentSlot,
+  CancelAssignmentRequest,
+  CancelAssignmentResponse,
   CreateAssignmentRequest,
   CreateAssignmentResponse,
   MyAssignmentSlot,
@@ -19,11 +22,37 @@ export const assignmentApi = {
     return data
   },
 
+  /** POST /api/groups/{groupId}/assignments/cancel — 범위 내 확정 슬롯 취소 (OWNER) */
+  cancel: async (
+    groupId: number,
+    body: CancelAssignmentRequest,
+  ): Promise<CancelAssignmentResponse> => {
+    const { data } = await apiClient.post<CancelAssignmentResponse>(
+      `/groups/${groupId}/assignments/cancel`,
+      body,
+    )
+    return data
+  },
+
   /** GET /api/groups/{groupId}/assignments?date=yyyy-MM-dd */
   list: async (groupId: number, date: string): Promise<AssignmentSlot[]> => {
     const { data } = await apiClient.get<AssignmentSlot[]>(
       `/groups/${groupId}/assignments`,
       { params: { date } },
+    )
+    return data
+  },
+
+  /** GET /api/groups/{groupId}/assignments/candidates — 시간대에 근무 가능한 알바 목록 (OWNER) */
+  listCandidates: async (
+    groupId: number,
+    date: string,
+    startTime: string,
+    endTime: string,
+  ): Promise<AssignmentCandidate[]> => {
+    const { data } = await apiClient.get<AssignmentCandidate[]>(
+      `/groups/${groupId}/assignments/candidates`,
+      { params: { date, startTime, endTime } },
     )
     return data
   },

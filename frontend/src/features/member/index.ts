@@ -1,3 +1,8 @@
 /** member 도메인 public API. */
-export { useSignUpMutation } from './hooks/useMember'
-export type { SignUpRequest, SignUpResponse } from './types'
+export {
+  useSignUpMutation,
+  useMyProfileQuery,
+  useUpdateNameMutation,
+} from './hooks/useMember'
+export { memberKeys } from './keys'
+export type { SignUpRequest, SignUpResponse, MyProfile, UpdateNameRequest } from './types'

@@ -30,15 +30,30 @@ const TONE_CLASS: Record<BlockTone, string> = {
 
 interface Props {
   blocks: TimelineBlock[]
-  selection: SlotSelection | null
-  onSelectionChange: (selection: SlotSelection) => void
+  selection?: SlotSelection | null
+  onSelectionChange?: (selection: SlotSelection) => void
+  /** 지정하면 드래그 대신 블록 클릭으로 선택하는 모드가 된다. */
+  onBlockClick?: (block: TimelineBlock) => void
+  /** 클릭 모드에서 현재 선택된 블록 key (하이라이트 표시) */
+  activeBlockKey?: string | number | null
   /** 현재 시각 슬롯(소수 허용). null 이면 표시 안 함. */
   nowSlot?: number | null
   readOnly?: boolean
 }
 
-/** 08:00~22:00, 30분 슬롯 세로 타임라인. 빈 영역을 드래그하면 구간을 선택한다. */
-export function ScheduleTimeline({ blocks, selection, onSelectionChange, nowSlot, readOnly }: Props) {
+/**
+ * 08:00~22:00, 30분 슬롯 세로 타임라인.
+ * 기본은 빈 영역 드래그로 구간 선택, `onBlockClick` 을 주면 블록 클릭 선택 모드로 동작한다.
+ */
+export function ScheduleTimeline({
+  blocks,
+  selection,
+  onSelectionChange,
+  onBlockClick,
+  activeBlockKey,
+  nowSlot,
+  readOnly,
+}: Props) {
   const trackRef = useRef<HTMLDivElement>(null)
   const anchorRef = useRef<number | null>(null)
 
@@ -51,20 +66,22 @@ export function ScheduleTimeline({ blocks, selection, onSelectionChange, nowSlot
     return Math.max(0, Math.min(SLOT_COUNT - 1, Math.floor(y / SLOT_PX)))
   }
 
+  const dragEnabled = !readOnly && !onBlockClick && onSelectionChange != null
+
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (readOnly) return
+    if (!dragEnabled) return
     e.preventDefault()
     trackRef.current?.setPointerCapture(e.pointerId)
     const slot = slotFromEvent(e.clientY)
     anchorRef.current = slot
-    onSelectionChange({ start: slot, end: slot + 1 })
+    onSelectionChange!({ start: slot, end: slot + 1 })
   }
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (readOnly || anchorRef.current === null) return
+    if (!dragEnabled || anchorRef.current === null) return
     const slot = slotFromEvent(e.clientY)
     const a = anchorRef.current
-    onSelectionChange({ start: Math.min(a, slot), end: Math.max(a, slot) + 1 })
+    onSelectionChange!({ start: Math.min(a, slot), end: Math.max(a, slot) + 1 })
   }
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -91,7 +108,7 @@ export function ScheduleTimeline({ blocks, selection, onSelectionChange, nowSlot
       {/* 슬롯 트랙 */}
       <div
         ref={trackRef}
-        className={readOnly ? 'relative' : 'relative cursor-crosshair touch-none select-none'}
+        className={dragEnabled ? 'relative cursor-crosshair touch-none select-none' : 'relative'}
         style={{ height: SLOT_COUNT * SLOT_PX }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -110,7 +127,17 @@ export function ScheduleTimeline({ blocks, selection, onSelectionChange, nowSlot
         {blocks.map((b) => (
           <div
             key={b.key}
-            className={`pointer-events-none absolute left-2 right-2 flex flex-col gap-0.5 overflow-hidden rounded-[10px] border px-3 py-2 ${TONE_CLASS[b.tone]}`}
+            onClick={onBlockClick ? () => onBlockClick(b) : undefined}
+            className={[
+              'absolute left-2 right-2 flex flex-col gap-0.5 overflow-hidden rounded-[10px] border px-3 py-2',
+              TONE_CLASS[b.tone],
+              onBlockClick
+                ? 'cursor-pointer transition-shadow hover:shadow-md'
+                : 'pointer-events-none',
+              onBlockClick && activeBlockKey === b.key
+                ? 'ring-2 ring-primary ring-offset-1'
+                : '',
+            ].join(' ')}
             style={{ top: b.startSlot * SLOT_PX, height: (b.endSlot - b.startSlot) * SLOT_PX }}
           >
             <div className="flex items-center justify-between">

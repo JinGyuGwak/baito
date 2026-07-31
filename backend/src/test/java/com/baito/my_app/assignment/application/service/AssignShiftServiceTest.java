@@ -3,7 +3,6 @@ package com.baito.my_app.assignment.application.service;
 import com.baito.my_app.assignment.application.port.in.AssignShiftUseCase;
 import com.baito.my_app.assignment.application.port.out.ShiftAssignmentRepository;
 import com.baito.my_app.assignment.domain.ShiftAssignment;
-import com.baito.my_app.assignment.domain.ShiftAssignmentStatus;
 import com.baito.my_app.assignment.domain.ShiftNotAvailableException;
 import com.baito.my_app.assignment.domain.StaffQuotaExceededException;
 import com.baito.my_app.group.application.port.out.WorkGroupRepository;
@@ -166,6 +165,11 @@ class AssignShiftServiceTest {
         }
 
         @Override
+        public List<WorkGroup> findAllByIds(java.util.Collection<Long> ids) {
+            return ids.stream().map(store::get).filter(java.util.Objects::nonNull).toList();
+        }
+
+        @Override
         public List<WorkGroup> findByOwnerId(Long ownerId) {
             return store.values().stream().filter(g -> g.getOwnerId().equals(ownerId)).toList();
         }
@@ -196,6 +200,11 @@ class AssignShiftServiceTest {
         public List<GroupMembership> findActiveByMemberId(Long memberId) {
             return List.of();
         }
+
+        @Override
+        public List<GroupMembership> findActiveByGroupId(Long groupId) {
+            return List.of();
+        }
     }
 
     static class FakeAvailabilityRepository implements AvailabilitySlotRepository {
@@ -211,6 +220,11 @@ class AssignShiftServiceTest {
 
         @Override
         public List<AvailabilitySlot> findByGroupIdAndMemberIdAndWorkDate(Long groupId, Long memberId, LocalDate workDate) {
+            return List.of();
+        }
+
+        @Override
+        public List<AvailabilitySlot> findByGroupIdAndWorkDate(Long groupId, LocalDate workDate) {
             return List.of();
         }
 
@@ -279,9 +293,30 @@ class AssignShiftServiceTest {
         @Override
         public List<ShiftAssignment> findConfirmedByMemberIdAndWorkDate(Long memberId, LocalDate workDate) {
             return saved.stream()
-                    .filter(a -> a.getMemberId().equals(memberId) && a.getWorkDate().equals(workDate)
-                            && a.getStatus() == ShiftAssignmentStatus.CONFIRMED)
+                    .filter(a -> a.getMemberId().equals(memberId) && a.getWorkDate().equals(workDate))
                     .toList();
+        }
+
+        @Override
+        public int deleteConfirmedInSlots(Long groupId, Long memberId, LocalDate workDate,
+                                          List<LocalTime> startTimes) {
+            List<ShiftAssignment> toDelete = saved.stream()
+                    .filter(a -> a.getGroupId().equals(groupId) && a.getMemberId().equals(memberId)
+                            && a.getWorkDate().equals(workDate) && startTimes.contains(a.getStartTime()))
+                    .toList();
+            saved.removeAll(toDelete);
+            return toDelete.size();
+        }
+
+        @Override
+        public int deleteConfirmedInSlotsForAllMembers(Long groupId, LocalDate workDate,
+                                                       List<LocalTime> startTimes) {
+            List<ShiftAssignment> toDelete = saved.stream()
+                    .filter(a -> a.getGroupId().equals(groupId)
+                            && a.getWorkDate().equals(workDate) && startTimes.contains(a.getStartTime()))
+                    .toList();
+            saved.removeAll(toDelete);
+            return toDelete.size();
         }
     }
 }

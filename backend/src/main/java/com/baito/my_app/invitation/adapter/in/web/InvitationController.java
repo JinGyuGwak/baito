@@ -1,5 +1,6 @@
 package com.baito.my_app.invitation.adapter.in.web;
 
+import com.baito.my_app.common.domain.PageResult;
 import com.baito.my_app.common.security.LoginMember;
 import com.baito.my_app.invitation.application.port.in.CancelInvitationUseCase;
 import com.baito.my_app.invitation.application.port.in.GetInvitationsQuery;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -60,10 +62,14 @@ public class InvitationController {
 
     @GetMapping("/sent")
     @PreAuthorize("hasRole('OWNER')")
-    public List<InvitationResponse> sent(@AuthenticationPrincipal LoginMember loginMember) {
-        return getInvitationsQuery.getSentInvitations(loginMember.getMemberId()).stream()
-                .map(InvitationResponse::from)
-                .toList();
+    public SentInvitationPageResponse sent(@RequestParam Long groupId,
+                                           @RequestParam(required = false) InvitationStatus status,
+                                           @RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "10") int size,
+                                           @AuthenticationPrincipal LoginMember loginMember) {
+        PageResult<GetInvitationsQuery.SentInvitation> result = getInvitationsQuery.getSentInvitations(
+                loginMember.getMemberId(), groupId, status, page, size);
+        return SentInvitationPageResponse.from(result);
     }
 
     @PostMapping("/{invitationId}/cancel")
@@ -120,18 +126,58 @@ public class InvitationController {
     @Getter
     @Setter
     @AllArgsConstructor
+    public static class SentInvitationPageResponse {
+        private List<SentInvitationResponse> content;
+        private int page;
+        private int size;
+        private long totalElements;
+        private int totalPages;
+
+        static SentInvitationPageResponse from(PageResult<GetInvitationsQuery.SentInvitation> result) {
+            return new SentInvitationPageResponse(
+                    result.content().stream().map(SentInvitationResponse::from).toList(),
+                    result.page(), result.size(), result.totalElements(), result.totalPages());
+        }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SentInvitationResponse {
+        private Long id;
+        private Long groupId;
+        private Long inviteeId;
+        private String inviteeName;
+        private String inviteeLoginId;
+        private InvitationStatus status;
+        private LocalDateTime createdAt;
+        private LocalDateTime respondedAt;
+
+        static SentInvitationResponse from(GetInvitationsQuery.SentInvitation s) {
+            Invitation i = s.invitation();
+            return new SentInvitationResponse(i.getId(), i.getGroupId(), i.getInviteeId(),
+                    s.inviteeName(), s.inviteeLoginId(), i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
+        }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
     public static class InvitationResponse {
         private Long id;
         private Long groupId;
+        private String groupName;
         private Long inviterId;
+        private String inviterName;
         private Long inviteeId;
         private InvitationStatus status;
         private LocalDateTime createdAt;
         private LocalDateTime respondedAt;
 
-        static InvitationResponse from(Invitation i) {
-            return new InvitationResponse(i.getId(), i.getGroupId(), i.getInviterId(), i.getInviteeId(),
-                    i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
+        static InvitationResponse from(GetInvitationsQuery.ReceivedInvitation r) {
+            Invitation i = r.invitation();
+            return new InvitationResponse(i.getId(), i.getGroupId(), r.groupName(), i.getInviterId(),
+                    r.inviterName(), i.getInviteeId(), i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
         }
     }
 }

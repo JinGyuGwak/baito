@@ -1,11 +1,14 @@
 package com.baito.my_app.assignment.application.service;
 
+import com.baito.my_app.assignment.application.port.in.GetAssignmentsQuery.AssignmentDetail;
 import com.baito.my_app.assignment.application.port.out.ShiftAssignmentRepository;
 import com.baito.my_app.assignment.domain.ShiftAssignment;
-import com.baito.my_app.assignment.domain.ShiftAssignmentStatus;
 import com.baito.my_app.group.application.port.out.WorkGroupRepository;
 import com.baito.my_app.group.domain.NotGroupOwnerException;
 import com.baito.my_app.group.domain.WorkGroup;
+import com.baito.my_app.member.application.port.out.MemberRepository;
+import com.baito.my_app.member.domain.Member;
+import com.baito.my_app.member.domain.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,19 +36,38 @@ class AssignmentQueryServiceTest {
     private WorkGroupRepository workGroupRepository;
     @Mock
     private ShiftAssignmentRepository shiftAssignmentRepository;
+    @Mock
+    private MemberRepository memberRepository;
     @InjectMocks
     private AssignmentQueryService service;
 
     @Test
-    @DisplayName("성공 - 소유자면 해당 날짜의 확정 배정 목록을 반환한다")
+    @DisplayName("성공 - 소유자면 해당 날짜의 확정 배정 목록을 회원 이름과 함께 반환한다")
     void getAssignments() {
         given(workGroupRepository.findById(GROUP_ID))
                 .willReturn(Optional.of(new WorkGroup(GROUP_ID, OWNER_ID, "강남점", null, null)));
-        List<ShiftAssignment> assignments = List.of(new ShiftAssignment(
-                1L, GROUP_ID, 2L, DATE, LocalTime.of(9, 0), OWNER_ID, ShiftAssignmentStatus.CONFIRMED, null));
-        given(shiftAssignmentRepository.findConfirmedByGroupIdAndWorkDate(GROUP_ID, DATE)).willReturn(assignments);
+        given(shiftAssignmentRepository.findConfirmedByGroupIdAndWorkDate(GROUP_ID, DATE)).willReturn(List.of(
+                new ShiftAssignment(1L, GROUP_ID, 2L, DATE, LocalTime.of(9, 0),
+                        OWNER_ID, null)));
+        given(memberRepository.findAllByIds(List.of(2L))).willReturn(List.of(
+                new Member(2L, "worker01", "", "김알바", Role.PART_TIMER, null)));
 
-        assertThat(service.getAssignments(GROUP_ID, OWNER_ID, DATE)).isEqualTo(assignments);
+        assertThat(service.getAssignments(GROUP_ID, OWNER_ID, DATE)).containsExactly(
+                new AssignmentDetail(2L, "김알바", "worker01", LocalTime.of(9, 0)));
+    }
+
+    @Test
+    @DisplayName("성공 - 회원 정보를 못 찾으면 이름/loginId는 null로 채운다")
+    void getAssignments_memberMissing() {
+        given(workGroupRepository.findById(GROUP_ID))
+                .willReturn(Optional.of(new WorkGroup(GROUP_ID, OWNER_ID, "강남점", null, null)));
+        given(shiftAssignmentRepository.findConfirmedByGroupIdAndWorkDate(GROUP_ID, DATE)).willReturn(List.of(
+                new ShiftAssignment(1L, GROUP_ID, 2L, DATE, LocalTime.of(9, 0),
+                        OWNER_ID, null)));
+        given(memberRepository.findAllByIds(List.of(2L))).willReturn(List.of());
+
+        assertThat(service.getAssignments(GROUP_ID, OWNER_ID, DATE)).containsExactly(
+                new AssignmentDetail(2L, null, null, LocalTime.of(9, 0)));
     }
 
     @Test

@@ -38,18 +38,21 @@ function InvitationCard({ invitation }: { invitation: Invitation }) {
   const busy = accept.isPending || reject.isPending
   const error = accept.error ?? reject.error
 
+  const groupName = invitation.groupName ?? `그룹 #${invitation.groupId}`
+  const inviterName = invitation.inviterName ?? `점주 #${invitation.inviterId}`
+
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <div className="h-1.5 bg-[linear-gradient(90deg,#3D6AFF,#6E8BFF)]" />
       <div className="p-5">
         <div className="flex gap-4">
           <span className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-2xl bg-[#EEF3FF] text-lg font-extrabold text-primary">
-            #{invitation.groupId}
+            {groupName.slice(0, 2)}
           </span>
           <div className="flex-1">
-            <div className="text-[17px] font-extrabold">그룹 #{invitation.groupId}</div>
+            <div className="text-[17px] font-extrabold">{groupName}</div>
             <div className="mt-1 text-[13px] text-muted-foreground">
-              초대한 점주 #{invitation.inviterId} · {formatRelative(invitation.createdAt)}
+              초대한 점주 {inviterName} · {formatRelative(invitation.createdAt)}
             </div>
           </div>
         </div>

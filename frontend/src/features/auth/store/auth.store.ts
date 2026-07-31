@@ -7,6 +7,8 @@ export interface AuthUser {
   memberId: number
   loginId: string
   role: Role
+  /** 표시용 이름. 로그인 응답에는 없고 프로필 조회/변경 시 채워집니다. */
+  name?: string
 }
 
 interface AuthState {
@@ -15,6 +17,8 @@ interface AuthState {
   user: AuthUser | null
   setAuth: (payload: { token: string; user: AuthUser }) => void
   setUser: (user: AuthUser) => void
+  /** 프로필에서 이름을 변경했을 때 표시용 이름만 동기화. */
+  setName: (name: string) => void
   clear: () => void
 }
 
@@ -33,6 +37,8 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       setAuth: ({ token, user }) => set({ token, user }),
       setUser: (user) => set({ user }),
+      setName: (name) =>
+        set((state) => (state.user ? { user: { ...state.user, name } } : state)),
       clear: () => set({ token: null, user: null }),
     }),
     { name: 'baito-auth' },

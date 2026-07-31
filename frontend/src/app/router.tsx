@@ -8,7 +8,9 @@ import { SchedulePage } from '@/pages/SchedulePage'
 import { AssignmentPage } from '@/pages/AssignmentPage'
 import { AvailabilityPage } from '@/pages/AvailabilityPage'
 import { InvitationsPage } from '@/pages/InvitationsPage'
+import { MembersPage } from '@/pages/MembersPage'
 import { MySchedulePage } from '@/pages/MySchedulePage'
+import { ProfilePage } from '@/pages/ProfilePage'
 
 /** 토큰이 없으면 로그인으로 보내는 보호 라우트. */
 function ProtectedRoute() {
@@ -27,11 +29,13 @@ export function AppRouter() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/my-schedule" element={<MySchedulePage />} />
           <Route path="/groups/:groupId/schedule" element={<SchedulePage />} />
           <Route path="/groups/:groupId/assignments" element={<AssignmentPage />} />
           <Route path="/groups/:groupId/availability" element={<AvailabilityPage />} />
           <Route path="/groups/:groupId/invitations" element={<InvitationsPage />} />
+          <Route path="/groups/:groupId/members" element={<MembersPage />} />
         </Route>
       </Route>
 

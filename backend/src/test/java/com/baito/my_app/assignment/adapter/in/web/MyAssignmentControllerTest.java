@@ -2,7 +2,6 @@ package com.baito.my_app.assignment.adapter.in.web;
 
 import com.baito.my_app.assignment.application.port.in.GetAssignmentsQuery;
 import com.baito.my_app.assignment.domain.ShiftAssignment;
-import com.baito.my_app.assignment.domain.ShiftAssignmentStatus;
 import com.baito.my_app.support.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,7 +34,7 @@ class MyAssignmentControllerTest extends RestDocsSupport {
         given(getAssignmentsQuery.getMyAssignments(PART_TIMER.getMemberId(), LocalDate.of(2026, 5, 10)))
                 .willReturn(List.of(
                         new ShiftAssignment(1L, 10L, PART_TIMER.getMemberId(), LocalDate.of(2026, 5, 10),
-                                LocalTime.of(9, 0), 1L, ShiftAssignmentStatus.CONFIRMED, null)));
+                                LocalTime.of(9, 0), 1L, null)));
 
         mockMvc.perform(get("/api/me/assignments").with(partTimer())
                         .param("date", "2026-05-10"))

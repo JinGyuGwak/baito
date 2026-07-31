@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Spinner } from '@/components/spinner'
 import { IconCheck, IconChevR, IconClock, IconDrag, IconSparkle, IconWarn } from '@/components/icons'
 import { useGroupsQuery } from '@/features/groups'
+import { useAssignmentsQuery } from '@/features/assignments'
 import {
   useRequiredStaffQuery,
   useSetRequiredStaffMutation,
@@ -19,6 +28,7 @@ import {
   countsToIntervals,
   slotToTime,
   slotsToCounts,
+  timeToSlot,
 } from '@/features/schedule/lib/slots'
 
 /** 점주 스케줄 작성 — 날짜별 필요 인원을 30분 슬롯으로 설정. */
@@ -34,7 +44,9 @@ export function SchedulePage() {
   const setDate = (d: string) => setSearchParams({ date: d }, { replace: true })
 
   const query = useRequiredStaffQuery(groupId, date)
+  const assignments = useAssignmentsQuery(groupId, date)
   const save = useSetRequiredStaffMutation(groupId)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   // 서버 데이터 기준선. 편집은 로컬 counts 로 하고 저장 시 구간으로 합쳐 보낸다.
   const baseline = useMemo(() => slotsToCounts(query.data ?? []), [query.data])
@@ -55,6 +67,15 @@ export function SchedulePage() {
   }, [selection?.start, selection?.end])
 
   const dirty = useMemo(() => counts.some((c, i) => c !== baseline[i]), [counts, baseline])
+
+  // 저장 시 필요인원이 0이 되는(=제거되는) 슬롯에 이미 배정된 인원.
+  // 서버는 이 슬롯들의 배정을 초기화하므로 저장 전 경고한다.
+  const affected = useMemo(() => {
+    const rows = (assignments.data ?? [])
+      .map((a) => ({ name: a.memberName ?? '알바', slot: timeToSlot(a.startTime) }))
+      .filter((r) => r.slot >= 0 && counts[r.slot] === 0)
+    return rows.sort((x, y) => x.slot - y.slot || x.name.localeCompare(y.name))
+  }, [assignments.data, counts])
 
   const displayBlocks: TimelineBlock[] = useMemo(
     () =>
@@ -78,9 +99,28 @@ export function SchedulePage() {
     })
   }
 
+  const doSave = () => save.mutate({ workDate: date, intervals: countsToIntervals(counts) })
+
   const handleSave = () => {
     if (!dirty || save.isPending) return
-    save.mutate({ workDate: date, intervals: countsToIntervals(counts) })
+    // 배정이 초기화되는 슬롯이 있으면 확인 모달을 먼저 띄운다.
+    if (affected.length > 0) {
+      setConfirmOpen(true)
+      return
+    }
+    doSave()
+  }
+
+  const confirmSave = () => {
+    setConfirmOpen(false)
+    doSave()
+  }
+
+  // 취소: 변경 작업을 되돌려 원래 값을 유지한다.
+  const cancelSave = () => {
+    setConfirmOpen(false)
+    setCounts(baseline)
+    setSelection(null)
   }
 
   const now = new Date()
@@ -187,7 +227,73 @@ export function SchedulePage() {
           onApply={applyCount}
         />
       </div>
+
+      <ResetAssignmentDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        affected={affected}
+        onConfirm={confirmSave}
+        onCancel={cancelSave}
+      />
     </div>
+  )
+}
+
+/* ── 배정 초기화 확인 모달 ── */
+function ResetAssignmentDialog({
+  open,
+  onOpenChange,
+  affected,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  affected: { name: string; slot: number }[]
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#FFECEE] text-[#F04452]">
+              <IconWarn size={18} stroke={2} />
+            </span>
+            배정 정보가 초기화돼요
+          </DialogTitle>
+          <DialogDescription className="pt-1">
+            변경하려는 시간대에 이미 배정된 알바가 있어요. 시간을 변경하면 아래 배정 정보가 초기화됩니다. 계속하시겠어요?
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="max-h-52 overflow-y-auto rounded-xl bg-secondary/60 p-3 text-[13px]">
+          <ul className="flex flex-col gap-1.5">
+            {affected.map((r, i) => (
+              <li key={`${r.slot}-${r.name}-${i}`} className="flex items-center justify-between">
+                <span className="font-semibold">{r.name}</span>
+                <span className="text-muted-foreground">
+                  {slotToTime(r.slot)} – {slotToTime(r.slot + 1)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="secondary" onClick={onCancel} className="font-bold">
+            취소
+          </Button>
+          <Button
+            onClick={onConfirm}
+            className="bg-[#F04452] font-bold hover:bg-[#D93A47] focus-visible:ring-[#F04452]"
+          >
+            계속 진행
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
