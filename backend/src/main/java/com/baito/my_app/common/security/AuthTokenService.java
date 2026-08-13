@@ -1,6 +1,10 @@
 package com.baito.my_app.common.security;
 
 import com.baito.my_app.member.domain.Role;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -68,7 +72,14 @@ public class AuthTokenService {
     }
 
     /** JSON shape persisted in Redis. Password is never stored — it is irrelevant after login. */
-    record TokenPayload(Long memberId, String loginId, Role role) {
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class TokenPayload {
+        private Long memberId;
+        private String loginId;
+        private Role role;
 
         static TokenPayload from(LoginMember member) {
             return new TokenPayload(member.getMemberId(), member.getUsername(), member.getRole());

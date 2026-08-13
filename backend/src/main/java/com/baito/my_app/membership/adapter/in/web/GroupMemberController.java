@@ -61,7 +61,7 @@ public class GroupMemberController {
         private LocalDateTime joinedAt;
 
         static GroupMemberResponse from(GetGroupMembersQuery.GroupMember m) {
-            return new GroupMemberResponse(m.memberId(), m.name(), m.loginId(), m.joinedAt());
+            return new GroupMemberResponse(m.getMemberId(), m.getName(), m.getLoginId(), m.getJoinedAt());
         }
     }
 }

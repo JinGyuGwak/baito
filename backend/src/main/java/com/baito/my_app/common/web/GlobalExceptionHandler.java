@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
-                .orElse("잘못된 요청입니다.");
+                .orElse("不正なリクエストです。");
         return build(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message);
     }
 
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
-        return build(HttpStatus.UNAUTHORIZED, "AUTHENTICATION_FAILED", "로그인 ID 또는 비밀번호가 올바르지 않습니다.");
+        return build(HttpStatus.UNAUTHORIZED, "AUTHENTICATION_FAILED", "ログインIDまたはパスワードが正しくありません。");
     }
 
     @ExceptionHandler({
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
             AccessDeniedException.class
     })
     public ResponseEntity<ErrorResponse> handleForbidden(RuntimeException ex) {
-        String message = (ex instanceof AccessDeniedException) ? "접근 권한이 없습니다." : ex.getMessage();
+        String message = (ex instanceof AccessDeniedException) ? "アクセス権限がありません。" : ex.getMessage();
         return build(HttpStatus.FORBIDDEN, code(ex), message);
     }
 
@@ -91,13 +91,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandler(NoHandlerFoundException ex) {
-        return build(HttpStatus.NOT_FOUND, "NOT_FOUND", "요청한 리소스를 찾을 수 없습니다.");
+        return build(HttpStatus.NOT_FOUND, "NOT_FOUND", "リクエストされたリソースが見つかりません。");
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
         log.error("Unhandled exception", ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "서버 오류가 발생했습니다.");
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "サーバーエラーが発生しました。");
     }
 
     private static ResponseEntity<ErrorResponse> build(HttpStatus status, String code, String message) {

@@ -52,12 +52,12 @@ class MemberControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.memberId").value(100))
                 .andDo(document("member-sign-up",
                         requestFields(
-                                fieldWithPath("loginId").description("로그인 ID (최대 50자, 중복 불가)"),
-                                fieldWithPath("password").description("비밀번호 (8~64자)"),
-                                fieldWithPath("name").description("이름 (최대 50자)"),
-                                fieldWithPath("role").description("역할: `OWNER`(사장) 또는 `PART_TIMER`(알바)")),
+                                fieldWithPath("loginId").description("ログインID (最大50文字, 重複不可)"),
+                                fieldWithPath("password").description("パスワード (8〜64文字)"),
+                                fieldWithPath("name").description("名前 (最大50文字)"),
+                                fieldWithPath("role").description("役割: `OWNER`(オーナー) または `PART_TIMER`(アルバイト)")),
                         responseFields(
-                                fieldWithPath("memberId").description("생성된 회원 ID"))));
+                                fieldWithPath("memberId").description("作成された会員ID"))));
     }
 
     @Test
@@ -76,8 +76,8 @@ class MemberControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andDo(document("member-sign-up-validation-error",
                         responseFields(
-                                fieldWithPath("code").description("에러 코드: `VALIDATION_ERROR`"),
-                                fieldWithPath("message").description("검증 실패 상세 메시지"))));
+                                fieldWithPath("code").description("エラーコード: `VALIDATION_ERROR`"),
+                                fieldWithPath("message").description("検証失敗の詳細メッセージ"))));
     }
 
     @Test
@@ -92,10 +92,10 @@ class MemberControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.name").value("홍길동"))
                 .andDo(document("member-me",
                         responseFields(
-                                fieldWithPath("memberId").description("회원 ID"),
-                                fieldWithPath("loginId").description("로그인 ID (변경 불가)"),
-                                fieldWithPath("name").description("이름"),
-                                fieldWithPath("role").description("역할: `OWNER` 또는 `PART_TIMER` (변경 불가)"))));
+                                fieldWithPath("memberId").description("会員ID"),
+                                fieldWithPath("loginId").description("ログインID (変更不可)"),
+                                fieldWithPath("name").description("名前"),
+                                fieldWithPath("role").description("役割: `OWNER` または `PART_TIMER` (変更不可)"))));
     }
 
     @Test
@@ -113,12 +113,12 @@ class MemberControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.name").value("김철수"))
                 .andDo(document("member-update-name",
                         requestFields(
-                                fieldWithPath("name").description("변경할 이름 (1~50자)")),
+                                fieldWithPath("name").description("変更する名前 (1〜50文字)")),
                         responseFields(
-                                fieldWithPath("memberId").description("회원 ID"),
-                                fieldWithPath("loginId").description("로그인 ID"),
-                                fieldWithPath("name").description("변경된 이름"),
-                                fieldWithPath("role").description("역할"))));
+                                fieldWithPath("memberId").description("会員ID"),
+                                fieldWithPath("loginId").description("ログインID"),
+                                fieldWithPath("name").description("変更された名前"),
+                                fieldWithPath("role").description("役割"))));
     }
 
     @Test

@@ -49,10 +49,10 @@ class GroupControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.groupId").value(10))
                 .andDo(document("group-create",
                         requestFields(
-                                fieldWithPath("name").description("그룹(매장) 이름 (최대 100자)"),
-                                fieldWithPath("description").optional().description("설명 (최대 255자, 선택)")),
+                                fieldWithPath("name").description("グループ(店舗)名 (最大100文字)"),
+                                fieldWithPath("description").optional().description("説明 (最大255文字, 任意)")),
                         responseFields(
-                                fieldWithPath("groupId").description("생성된 그룹 ID"))));
+                                fieldWithPath("groupId").description("作成されたグループID"))));
     }
 
     @Test
@@ -77,9 +77,9 @@ class GroupControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$[0].id").value(10))
                 .andDo(document("group-list",
                         responseFields(
-                                fieldWithPath("[].id").description("그룹 ID"),
-                                fieldWithPath("[].name").description("그룹 이름"),
-                                fieldWithPath("[].description").description("설명"),
-                                fieldWithPath("[].createdAt").description("생성 일시 (ISO-8601)"))));
+                                fieldWithPath("[].id").description("グループID"),
+                                fieldWithPath("[].name").description("グループ名"),
+                                fieldWithPath("[].description").description("説明"),
+                                fieldWithPath("[].createdAt").description("作成日時 (ISO-8601)"))));
     }
 }

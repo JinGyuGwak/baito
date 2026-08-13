@@ -135,8 +135,8 @@ public class InvitationController {
 
         static SentInvitationPageResponse from(PageResult<GetInvitationsQuery.SentInvitation> result) {
             return new SentInvitationPageResponse(
-                    result.content().stream().map(SentInvitationResponse::from).toList(),
-                    result.page(), result.size(), result.totalElements(), result.totalPages());
+                    result.getContent().stream().map(SentInvitationResponse::from).toList(),
+                    result.getPage(), result.getSize(), result.getTotalElements(), result.getTotalPages());
         }
     }
 
@@ -154,9 +154,9 @@ public class InvitationController {
         private LocalDateTime respondedAt;
 
         static SentInvitationResponse from(GetInvitationsQuery.SentInvitation s) {
-            Invitation i = s.invitation();
+            Invitation i = s.getInvitation();
             return new SentInvitationResponse(i.getId(), i.getGroupId(), i.getInviteeId(),
-                    s.inviteeName(), s.inviteeLoginId(), i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
+                    s.getInviteeName(), s.getInviteeLoginId(), i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
         }
     }
 
@@ -175,9 +175,9 @@ public class InvitationController {
         private LocalDateTime respondedAt;
 
         static InvitationResponse from(GetInvitationsQuery.ReceivedInvitation r) {
-            Invitation i = r.invitation();
-            return new InvitationResponse(i.getId(), i.getGroupId(), r.groupName(), i.getInviterId(),
-                    r.inviterName(), i.getInviteeId(), i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
+            Invitation i = r.getInvitation();
+            return new InvitationResponse(i.getId(), i.getGroupId(), r.getGroupName(), i.getInviterId(),
+                    r.getInviterName(), i.getInviteeId(), i.getStatus(), i.getCreatedAt(), i.getRespondedAt());
         }
     }
 }

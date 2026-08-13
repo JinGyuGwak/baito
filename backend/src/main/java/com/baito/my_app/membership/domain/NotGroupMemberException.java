@@ -7,6 +7,6 @@ import com.baito.my_app.common.exception.DomainException;
  */
 public class NotGroupMemberException extends DomainException {
     public NotGroupMemberException(Long groupId) {
-        super("해당 그룹의 활성 구성원이 아닙니다: " + groupId);
+        super("このグループの有効なメンバーではありません: " + groupId);
     }
 }

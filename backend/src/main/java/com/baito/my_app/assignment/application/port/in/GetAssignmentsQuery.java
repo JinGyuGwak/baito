@@ -1,6 +1,10 @@
 package com.baito.my_app.assignment.application.port.in;
 
 import com.baito.my_app.assignment.domain.ShiftAssignment;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -15,6 +19,14 @@ public interface GetAssignmentsQuery {
     List<ShiftAssignment> getMyAssignments(Long memberId, LocalDate workDate);
 
     /** One confirmed 30-minute slot with the assigned member's name and loginId. */
-    record AssignmentDetail(Long memberId, String memberName, String memberLoginId, LocalTime startTime) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    class AssignmentDetail {
+        private Long memberId;
+        private String memberName;
+        private String memberLoginId;
+        private LocalTime startTime;
     }
 }

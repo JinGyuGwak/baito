@@ -52,13 +52,13 @@ class AuthControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.role").value("OWNER"))
                 .andDo(document("auth-login",
                         requestFields(
-                                fieldWithPath("loginId").description("로그인 ID"),
-                                fieldWithPath("password").description("비밀번호")),
+                                fieldWithPath("loginId").description("ログインID"),
+                                fieldWithPath("password").description("パスワード")),
                         responseFields(
-                                fieldWithPath("token").description("이후 요청 시 `Authorization: Bearer` 헤더에 담아 보낼 인증 토큰"),
-                                fieldWithPath("memberId").description("회원 ID"),
-                                fieldWithPath("loginId").description("로그인 ID"),
-                                fieldWithPath("role").description("역할: `OWNER` 또는 `PART_TIMER`"))));
+                                fieldWithPath("token").description("以降のリクエストで `Authorization: Bearer` ヘッダーに載せて送る認証トークン"),
+                                fieldWithPath("memberId").description("会員ID"),
+                                fieldWithPath("loginId").description("ログインID"),
+                                fieldWithPath("role").description("役割: `OWNER` または `PART_TIMER`"))));
     }
 
     @Test
@@ -70,7 +70,7 @@ class AuthControllerTest extends RestDocsSupport {
                 .andExpect(status().isNoContent())
                 .andDo(document("auth-logout",
                         requestHeaders(
-                                headerWithName("Authorization").description("`Bearer <token>` 형식의 인증 토큰"))));
+                                headerWithName("Authorization").description("`Bearer <token>` 形式の認証トークン"))));
 
         verify(authTokenService).revoke("Zm9vLWJhci1iYXotcXV4LXRva2Vu");
     }
@@ -92,8 +92,8 @@ class AuthControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.code").value("AUTHENTICATION_FAILED"))
                 .andDo(document("auth-login-failed",
                         responseFields(
-                                fieldWithPath("code").description("에러 코드: `AUTHENTICATION_FAILED`"),
-                                fieldWithPath("message").description("에러 메시지"))));
+                                fieldWithPath("code").description("エラーコード: `AUTHENTICATION_FAILED`"),
+                                fieldWithPath("message").description("エラーメッセージ"))));
     }
 
     @Test
@@ -105,8 +105,8 @@ class AuthControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.role").value("OWNER"))
                 .andDo(document("auth-me",
                         responseFields(
-                                fieldWithPath("memberId").description("회원 ID"),
-                                fieldWithPath("loginId").description("로그인 ID"),
-                                fieldWithPath("role").description("역할"))));
+                                fieldWithPath("memberId").description("会員ID"),
+                                fieldWithPath("loginId").description("ログインID"),
+                                fieldWithPath("role").description("役割"))));
     }
 }

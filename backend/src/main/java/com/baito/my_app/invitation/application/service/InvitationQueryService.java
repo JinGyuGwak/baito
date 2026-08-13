@@ -40,7 +40,7 @@ public class InvitationQueryService implements GetInvitationsQuery {
                 invitationRepository.findByInviterIdAndGroupId(inviterId, groupId, status, page, size);
 
         Map<Long, Member> inviteesById = memberRepository.findAllByIds(
-                        invitations.content().stream().map(Invitation::getInviteeId).distinct().toList()).stream()
+                        invitations.getContent().stream().map(Invitation::getInviteeId).distinct().toList()).stream()
                 .collect(Collectors.toMap(Member::getId, Function.identity()));
 
         return invitations.map(inv -> {

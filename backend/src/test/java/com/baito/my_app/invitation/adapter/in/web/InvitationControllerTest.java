@@ -60,10 +60,10 @@ class InvitationControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.invitationId").value(50))
                 .andDo(document("invitation-invite",
                         requestFields(
-                                fieldWithPath("groupId").description("초대할 그룹 ID"),
-                                fieldWithPath("inviteeLoginId").description("초대받는 알바의 로그인 ID")),
+                                fieldWithPath("groupId").description("招待するグループID"),
+                                fieldWithPath("inviteeLoginId").description("招待されるアルバイトのログインID")),
                         responseFields(
-                                fieldWithPath("invitationId").description("생성된 초대 ID"))));
+                                fieldWithPath("invitationId").description("作成された招待ID"))));
     }
 
     @Test
@@ -88,24 +88,24 @@ class InvitationControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andDo(document("invitation-sent",
                         queryParameters(
-                                parameterWithName("groupId").description("조회할 그룹 ID"),
+                                parameterWithName("groupId").description("照会するグループID"),
                                 parameterWithName("status").optional()
-                                        .description("상태 필터: `PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED` (생략 시 전체)"),
-                                parameterWithName("page").optional().description("페이지 번호 (0부터, 기본 0)"),
-                                parameterWithName("size").optional().description("페이지 크기 (기본 10)")),
+                                        .description("状態フィルター: `PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED` (省略時は全件)"),
+                                parameterWithName("page").optional().description("ページ番号 (0から, デフォルト0)"),
+                                parameterWithName("size").optional().description("ページサイズ (デフォルト10)")),
                         responseFields(
-                                fieldWithPath("content[].id").description("초대 ID"),
-                                fieldWithPath("content[].groupId").description("그룹 ID"),
-                                fieldWithPath("content[].inviteeId").description("초대받은 알바 회원 ID"),
-                                fieldWithPath("content[].inviteeName").description("초대받은 알바 이름"),
-                                fieldWithPath("content[].inviteeLoginId").description("초대받은 알바 로그인 ID"),
-                                fieldWithPath("content[].status").description("상태: `PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED`"),
-                                fieldWithPath("content[].createdAt").description("생성 일시"),
-                                fieldWithPath("content[].respondedAt").optional().description("응답 일시 (미응답 시 null)"),
-                                fieldWithPath("page").description("현재 페이지 번호 (0부터)"),
-                                fieldWithPath("size").description("페이지 크기"),
-                                fieldWithPath("totalElements").description("전체 건수"),
-                                fieldWithPath("totalPages").description("전체 페이지 수"))));
+                                fieldWithPath("content[].id").description("招待ID"),
+                                fieldWithPath("content[].groupId").description("グループID"),
+                                fieldWithPath("content[].inviteeId").description("招待されたアルバイト会員ID"),
+                                fieldWithPath("content[].inviteeName").description("招待されたアルバイトの名前"),
+                                fieldWithPath("content[].inviteeLoginId").description("招待されたアルバイトのログインID"),
+                                fieldWithPath("content[].status").description("状態: `PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED`"),
+                                fieldWithPath("content[].createdAt").description("作成日時"),
+                                fieldWithPath("content[].respondedAt").optional().description("応答日時 (未応答時は null)"),
+                                fieldWithPath("page").description("現在のページ番号 (0から)"),
+                                fieldWithPath("size").description("ページサイズ"),
+                                fieldWithPath("totalElements").description("全件数"),
+                                fieldWithPath("totalPages").description("全ページ数"))));
     }
 
     @Test
@@ -114,7 +114,7 @@ class InvitationControllerTest extends RestDocsSupport {
         mockMvc.perform(post("/api/invitations/{invitationId}/cancel", 50L).with(owner()))
                 .andExpect(status().isNoContent())
                 .andDo(document("invitation-cancel",
-                        pathParameters(parameterWithName("invitationId").description("취소할 초대 ID"))));
+                        pathParameters(parameterWithName("invitationId").description("キャンセルする招待ID"))));
     }
 
     @Test
@@ -133,15 +133,15 @@ class InvitationControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$[0].inviterName").value("박점주"))
                 .andDo(document("invitation-received",
                         responseFields(
-                                fieldWithPath("[].id").description("초대 ID"),
-                                fieldWithPath("[].groupId").description("그룹 ID"),
-                                fieldWithPath("[].groupName").optional().description("그룹명 (조회 실패 시 null)"),
-                                fieldWithPath("[].inviterId").description("초대한 사장 회원 ID"),
-                                fieldWithPath("[].inviterName").optional().description("초대한 사장 이름 (조회 실패 시 null)"),
-                                fieldWithPath("[].inviteeId").description("초대받은 알바 회원 ID"),
-                                fieldWithPath("[].status").description("상태 (항상 `PENDING`)"),
-                                fieldWithPath("[].createdAt").description("생성 일시"),
-                                fieldWithPath("[].respondedAt").optional().description("응답 일시 (미응답 시 null)"))));
+                                fieldWithPath("[].id").description("招待ID"),
+                                fieldWithPath("[].groupId").description("グループID"),
+                                fieldWithPath("[].groupName").optional().description("グループ名 (照会失敗時は null)"),
+                                fieldWithPath("[].inviterId").description("招待したオーナー会員ID"),
+                                fieldWithPath("[].inviterName").optional().description("招待したオーナーの名前 (照会失敗時は null)"),
+                                fieldWithPath("[].inviteeId").description("招待されたアルバイト会員ID"),
+                                fieldWithPath("[].status").description("状態 (常に `PENDING`)"),
+                                fieldWithPath("[].createdAt").description("作成日時"),
+                                fieldWithPath("[].respondedAt").optional().description("応答日時 (未応答時は null)"))));
     }
 
     @Test
@@ -150,7 +150,7 @@ class InvitationControllerTest extends RestDocsSupport {
         mockMvc.perform(post("/api/invitations/{invitationId}/accept", 50L).with(partTimer()))
                 .andExpect(status().isNoContent())
                 .andDo(document("invitation-accept",
-                        pathParameters(parameterWithName("invitationId").description("수락할 초대 ID"))));
+                        pathParameters(parameterWithName("invitationId").description("承認する招待ID"))));
     }
 
     @Test
@@ -159,6 +159,6 @@ class InvitationControllerTest extends RestDocsSupport {
         mockMvc.perform(post("/api/invitations/{invitationId}/reject", 50L).with(partTimer()))
                 .andExpect(status().isNoContent())
                 .andDo(document("invitation-reject",
-                        pathParameters(parameterWithName("invitationId").description("거절할 초대 ID"))));
+                        pathParameters(parameterWithName("invitationId").description("拒否する招待ID"))));
     }
 }

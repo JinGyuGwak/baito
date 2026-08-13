@@ -4,6 +4,6 @@ import com.baito.my_app.common.exception.DomainException;
 
 public class DuplicatePendingInvitationException extends DomainException {
     public DuplicatePendingInvitationException() {
-        super("이미 대기 중(PENDING)인 초대가 존재합니다.");
+        super("すでに保留中(PENDING)の招待が存在します。");
     }
 }

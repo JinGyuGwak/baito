@@ -50,12 +50,12 @@ class AvailabilityControllerTest extends RestDocsSupport {
                         .content(body))
                 .andExpect(status().isNoContent())
                 .andDo(document("availability-set",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
                         requestFields(
-                                fieldWithPath("workDate").description("근무 날짜 (yyyy-MM-dd)"),
-                                fieldWithPath("intervals").description("근무 가능 시간 구간 목록 (기존 값 전체 교체)"),
-                                fieldWithPath("intervals[].startTime").description("구간 시작 시각 (HH:mm)"),
-                                fieldWithPath("intervals[].endTime").description("구간 종료 시각 (HH:mm)"))));
+                                fieldWithPath("workDate").description("勤務日 (yyyy-MM-dd)"),
+                                fieldWithPath("intervals").description("勤務可能時間の区間リスト (既存の値を全て置換)"),
+                                fieldWithPath("intervals[].startTime").description("区間の開始時刻 (HH:mm)"),
+                                fieldWithPath("intervals[].endTime").description("区間の終了時刻 (HH:mm)"))));
     }
 
     @Test
@@ -70,9 +70,9 @@ class AvailabilityControllerTest extends RestDocsSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].startTime").value("09:00:00"))
                 .andDo(document("availability-get",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
-                        queryParameters(parameterWithName("date").description("조회 날짜 (yyyy-MM-dd)")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
+                        queryParameters(parameterWithName("date").description("照会日 (yyyy-MM-dd)")),
                         responseFields(
-                                fieldWithPath("[].startTime").description("근무 가능한 30분 슬롯 시작 시각 (HH:mm:ss)"))));
+                                fieldWithPath("[].startTime").description("勤務可能な30分スロットの開始時刻 (HH:mm:ss)"))));
     }
 }

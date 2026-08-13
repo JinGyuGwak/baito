@@ -1,4 +1,4 @@
-= 바이토(Baito) API 문서
+= バイト(Baito) API ドキュメント
 :doctype: book
 :icons: font
 :source-highlighter: highlightjs
@@ -8,259 +8,259 @@
 :sectnums:
 
 [[overview]]
-== 개요
+== 概要
 
-알바 근무 스케줄 관리 서비스의 REST API 문서입니다. 모든 스니펫은 테스트 코드(Spring REST Docs)로부터 자동 생성되므로 실제 동작과 항상 일치합니다.
+アルバイトのシフト管理サービスの REST API ドキュメントです。すべてのスニペットはテストコード(Spring REST Docs)から自動生成されるため、実際の動作と常に一致します。
 
 [[overview-auth]]
-=== 인증 방식
+=== 認証方式
 
-* 불투명(opaque) 베어러 토큰 기반입니다. `POST /api/auth/login` 성공 시 토큰이 발급되며, 서버는 회원 정보를 암호화해 Redis에 저장합니다. 이후 요청은 `Authorization: Bearer <token>` 헤더로 인증합니다.
-* 로그아웃(`POST /api/auth/logout`) 시 서버가 Redis에서 토큰을 삭제해 즉시 무효화합니다.
-* 인증이 필요한 API에 미인증(토큰 없음/만료/무효) 상태로 접근하면 `401 Unauthorized` 를 반환합니다.
-* 역할(Role)은 `OWNER`(사장)와 `PART_TIMER`(알바) 두 가지이며, 권한이 맞지 않으면 `403 Forbidden` 을 반환합니다.
+* 不透明(opaque)ベアラートークンベースです。`POST /api/auth/login` の成功時にトークンが発行され、サーバーは会員情報を暗号化して Redis に保存します。以降のリクエストは `Authorization: Bearer <token>` ヘッダーで認証します。
+* ログアウト(`POST /api/auth/logout`)時に、サーバーが Redis からトークンを削除して即座に無効化します。
+* 認証が必要な API に未認証(トークンなし/期限切れ/無効)の状態でアクセスすると `401 Unauthorized` を返します。
+* 役割(Role)は `OWNER`(オーナー)と `PART_TIMER`(アルバイト)の2種類で、権限が一致しない場合は `403 Forbidden` を返します。
 
 [[overview-errors]]
-=== 공통 에러 응답
+=== 共通エラーレスポンス
 
-모든 에러는 아래 형식을 따릅니다. `code` 는 프론트엔드가 분기에 사용할 수 있는 기계식 문자열입니다.
+すべてのエラーは以下の形式に従います。`code` はフロントエンドが分岐に使用できる機械的な文字列です。
 
 [source,json]
 ----
 {
   "code": "STAFF_QUOTA_EXCEEDED",
-  "message": "해당 시간대의 필요 인원(1명)이 이미 모두 배정되었습니다: 2026-05-10 09:00"
+  "message": "この時間帯の必要人数(1名)はすでにすべて割り当てられています: 2026-05-10 09:00"
 }
 ----
 
 |===
-| HTTP 상태 | 대표 code | 설명
+| HTTP ステータス | 代表的な code | 説明
 
-| 400 | `VALIDATION_ERROR` | 요청 본문 검증 실패
-| 401 | `AUTHENTICATION_FAILED` | 로그인 실패 / 미인증
-| 403 | `NOT_GROUP_OWNER`, `NOT_GROUP_MEMBER` | 권한 없음
-| 404 | `MEMBER_NOT_FOUND`, `GROUP_NOT_FOUND` | 리소스 없음
-| 409 | `DUPLICATE_LOGIN_ID`, `SHIFT_NOT_AVAILABLE`, `STAFF_QUOTA_EXCEEDED` | 상태 충돌
+| 400 | `VALIDATION_ERROR` | リクエストボディの検証失敗
+| 401 | `AUTHENTICATION_FAILED` | ログイン失敗 / 未認証
+| 403 | `NOT_GROUP_OWNER`, `NOT_GROUP_MEMBER` | 権限なし
+| 404 | `MEMBER_NOT_FOUND`, `GROUP_NOT_FOUND` | リソースなし
+| 409 | `DUPLICATE_LOGIN_ID`, `SHIFT_NOT_AVAILABLE`, `STAFF_QUOTA_EXCEEDED` | 状態の競合
 |===
 
 [[member]]
-== 회원 (Member)
+== 会員 (Member)
 
 [[member-sign-up]]
-=== 회원 가입
+=== 会員登録
 
-`POST /api/members` — 인증 불필요. 역할은 가입 시 고정되며 이후 변경할 수 없습니다.
+`POST /api/members` — 認証不要。役割は登録時に固定され、以降は変更できません。
 
 operation::member-sign-up[snippets='http-request,request-fields,http-response,response-fields']
 
-검증 실패 예시(400):
+検証失敗の例(400):
 
 operation::member-sign-up-validation-error[snippets='http-response,response-fields']
 
 [[member-me]]
-=== 내 프로필 조회
+=== 自分のプロフィール照会
 
-`GET /api/members/me` — 로그인한 회원의 아이디/이름/역할을 조회합니다.
+`GET /api/members/me` — ログインした会員の ID / 名前 / 役割を照会します。
 
 operation::member-me[snippets='http-request,http-response,response-fields']
 
 [[member-update-name]]
-=== 내 이름 변경
+=== 自分の名前変更
 
-`PATCH /api/members/me` — 이름만 변경할 수 있습니다. `loginId` 와 역할은 변경할 수 없습니다.
+`PATCH /api/members/me` — 名前のみ変更できます。`loginId` と役割は変更できません。
 
 operation::member-update-name[snippets='http-request,request-fields,http-response,response-fields']
 
 [[auth]]
-== 인증 (Auth)
+== 認証 (Auth)
 
 [[auth-login]]
-=== 로그인
+=== ログイン
 
-`POST /api/auth/login` — 인증 불필요. 성공 시 응답 본문의 `token` 을 이후 요청의 `Authorization: Bearer` 헤더에 사용합니다.
+`POST /api/auth/login` — 認証不要。成功時にレスポンスボディの `token` を以降のリクエストの `Authorization: Bearer` ヘッダーに使用します。
 
 operation::auth-login[snippets='http-request,request-fields,http-response,response-fields']
 
-자격증명 오류 예시(401):
+認証情報エラーの例(401):
 
 operation::auth-login-failed[snippets='http-response,response-fields']
 
 [[auth-logout]]
-=== 로그아웃
+=== ログアウト
 
-`POST /api/auth/logout` — 헤더의 토큰을 무효화합니다. 성공 시 `204 No Content`.
+`POST /api/auth/logout` — ヘッダーのトークンを無効化します。成功時は `204 No Content`。
 
 operation::auth-logout[snippets='http-request,request-headers,http-response']
 
 [[auth-me]]
-=== 내 정보 조회
+=== 自分の情報照会
 
-`GET /api/auth/me` — 현재 로그인한 회원 정보를 반환합니다.
+`GET /api/auth/me` — 現在ログインしている会員情報を返します。
 
 operation::auth-me[snippets='http-request,http-response,response-fields']
 
 [[group]]
-== 그룹 (Group) — 사장 전용
+== グループ (Group) — オーナー専用
 
 [[group-create]]
-=== 그룹 생성
+=== グループ作成
 
-`POST /api/groups` — `OWNER` 권한 필요.
+`POST /api/groups` — `OWNER` 権限が必要。
 
 operation::group-create[snippets='http-request,request-fields,http-response,response-fields']
 
 [[group-list]]
-=== 내 그룹 목록
+=== 自分のグループ一覧
 
-`GET /api/groups` — 로그인한 사장이 소유한 그룹 목록.
+`GET /api/groups` — ログインしたオーナーが所有するグループ一覧。
 
 operation::group-list[snippets='http-request,http-response,response-fields']
 
 [[invitation]]
-== 초대 (Invitation)
+== 招待 (Invitation)
 
 [[invitation-invite]]
-=== 초대 생성 (사장)
+=== 招待作成 (オーナー)
 
-`POST /api/invitations` — `OWNER` 권한 필요. 알바의 로그인 ID로 초대합니다.
+`POST /api/invitations` — `OWNER` 権限が必要。アルバイトのログイン ID で招待します。
 
 operation::invitation-invite[snippets='http-request,request-fields,http-response,response-fields']
 
 [[invitation-sent]]
-=== 보낸 초대 목록 (사장)
+=== 送信した招待一覧 (オーナー)
 
-`GET /api/invitations/sent?groupId={groupId}&status={status}&page={page}&size={size}` — 그룹별 보낸 초대를 10건 단위(기본)로 페이징 조회합니다. `status` 로 대기/수락/거절/취소 상태를 필터링할 수 있으며, 초대받은 알바의 이름과 로그인 ID가 함께 반환됩니다.
+`GET /api/invitations/sent?groupId={groupId}&status={status}&page={page}&size={size}` — グループごとの送信済み招待を10件単位(デフォルト)でページング照会します。`status` で保留/承認/拒否/キャンセルの状態をフィルタリングでき、招待されたアルバイトの名前とログイン ID も併せて返されます。
 
 operation::invitation-sent[snippets='http-request,query-parameters,http-response,response-fields']
 
 [[invitation-cancel]]
-=== 초대 취소 (사장)
+=== 招待キャンセル (オーナー)
 
-`POST /api/invitations/{invitationId}/cancel` — `PENDING` 초대만 취소 가능.
+`POST /api/invitations/{invitationId}/cancel` — `PENDING` の招待のみキャンセル可能。
 
 operation::invitation-cancel[snippets='http-request,path-parameters,http-response']
 
 [[invitation-received]]
-=== 받은 초대 목록 (알바)
+=== 受け取った招待一覧 (アルバイト)
 
-`GET /api/invitations/received` — `PART_TIMER` 권한 필요. `PENDING` 상태만 조회됩니다.
+`GET /api/invitations/received` — `PART_TIMER` 権限が必要。`PENDING` 状態のみ照会されます。
 
 operation::invitation-received[snippets='http-request,http-response,response-fields']
 
 [[invitation-accept]]
-=== 초대 수락 (알바)
+=== 招待承認 (アルバイト)
 
-`POST /api/invitations/{invitationId}/accept` — 수락 시 그룹 멤버십이 생성됩니다.
+`POST /api/invitations/{invitationId}/accept` — 承認時にグループメンバーシップが作成されます。
 
 operation::invitation-accept[snippets='http-request,path-parameters,http-response']
 
 [[invitation-reject]]
-=== 초대 거절 (알바)
+=== 招待拒否 (アルバイト)
 
 `POST /api/invitations/{invitationId}/reject`
 
 operation::invitation-reject[snippets='http-request,path-parameters,http-response']
 
 [[membership]]
-== 멤버십 (Membership)
+== メンバーシップ (Membership)
 
 [[membership-groups]]
-=== 가입한 그룹 목록 (알바)
+=== 参加中のグループ一覧 (アルバイト)
 
-`GET /api/memberships/groups` — `PART_TIMER` 가 소속된 그룹 목록.
+`GET /api/memberships/groups` — `PART_TIMER` が所属するグループ一覧。
 
 operation::membership-groups[snippets='http-request,http-response,response-fields']
 
 [[group-member-list]]
-=== 그룹 멤버 목록 (사장)
+=== グループメンバー一覧 (オーナー)
 
-`GET /api/groups/{groupId}/members` — 그룹에 소속된(활성) 알바생 목록을 이름/로그인 ID와 함께 조회합니다.
+`GET /api/groups/{groupId}/members` — グループに所属する(有効な)アルバイト一覧を名前 / ログイン ID とともに照会します。
 
 operation::group-member-list[snippets='http-request,path-parameters,http-response,response-fields']
 
 [[group-member-remove]]
-=== 그룹 멤버 추방 (사장)
+=== グループメンバー削除 (オーナー)
 
-`DELETE /api/groups/{groupId}/members/{memberId}` — 알바생을 그룹에서 추방합니다(멤버십 비활성화). 성공 시 `204 No Content`.
+`DELETE /api/groups/{groupId}/members/{memberId}` — アルバイトをグループから削除します(メンバーシップの無効化)。成功時は `204 No Content`。
 
 operation::group-member-remove[snippets='http-request,path-parameters,http-response']
 
-활성 멤버가 아닌 경우(403):
+有効なメンバーでない場合(403):
 
 operation::group-member-remove-not-member[snippets='http-response,response-fields']
 
 [[schedule]]
-== 스케줄 (Schedule)
+== スケジュール (Schedule)
 
 [[availability-set]]
-=== 근무 가능 시간 설정 (알바)
+=== 勤務可能時間の設定 (アルバイト)
 
-`PUT /api/groups/{groupId}/availability` — 해당 날짜의 근무 가능 시간을 통째로 교체합니다. 구간은 30분 슬롯으로 분해되어 저장됩니다.
+`PUT /api/groups/{groupId}/availability` — 該当日の勤務可能時間をまるごと置き換えます。区間は30分スロットに分解されて保存されます。
 
 operation::availability-set[snippets='http-request,path-parameters,request-fields,http-response']
 
 [[availability-get]]
-=== 근무 가능 시간 조회 (알바)
+=== 勤務可能時間の照会 (アルバイト)
 
 `GET /api/groups/{groupId}/availability?date=yyyy-MM-dd`
 
 operation::availability-get[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
 
 [[required-staff-set]]
-=== 필요 인원 설정 (사장)
+=== 必要人数の設定 (オーナー)
 
-`PUT /api/groups/{groupId}/required-staff` — 해당 날짜의 필요 인원을 통째로 교체합니다.
+`PUT /api/groups/{groupId}/required-staff` — 該当日の必要人数をまるごと置き換えます。
 
 operation::required-staff-set[snippets='http-request,path-parameters,request-fields,http-response']
 
 [[required-staff-get]]
-=== 필요 인원 조회 (사장)
+=== 必要人数の照会 (オーナー)
 
 `GET /api/groups/{groupId}/required-staff?date=yyyy-MM-dd`
 
 operation::required-staff-get[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
 
 [[assignment]]
-== 근무 배정 (Assignment) — 사장 전용
+== シフト割り当て (Assignment) — オーナー専用
 
 [[assignment-assign]]
-=== 근무 배정
+=== シフト割り当て
 
-`POST /api/groups/{groupId}/assignments` — 시간 범위를 30분 슬롯으로 나눠 배정합니다. 모든 슬롯이 (근무 가능 시간 + 필요 인원) 조건을 통과해야만 저장되는 all-or-nothing 방식입니다.
+`POST /api/groups/{groupId}/assignments` — 時間範囲を30分スロットに分けて割り当てます。すべてのスロットが(勤務可能時間 + 必要人数)の条件を満たした場合のみ保存される all-or-nothing 方式です。
 
 operation::assignment-assign[snippets='http-request,path-parameters,request-fields,http-response,response-fields']
 
-필요 인원 초과 예시(409):
+必要人数超過の例(409):
 
 operation::assignment-assign-quota-exceeded[snippets='http-response,response-fields']
 
 [[assignment-cancel]]
-=== 근무 배정 취소
+=== シフト割り当て解除
 
-`POST /api/groups/{groupId}/assignments/cancel` — 지정한 알바의 확정 배정을 시간 범위 단위로 취소합니다. 범위 안에서 확정 배정이 없던 슬롯은 무시됩니다.
+`POST /api/groups/{groupId}/assignments/cancel` — 指定したアルバイトの確定した割り当てを時間範囲単位で解除します。範囲内で確定した割り当てがなかったスロットは無視されます。
 
 operation::assignment-cancel[snippets='http-request,path-parameters,request-fields,http-response,response-fields']
 
 [[assignment-list]]
-=== 근무 배정 조회
+=== シフト割り当て照会
 
-`GET /api/groups/{groupId}/assignments?date=yyyy-MM-dd` — 배정된 알바의 이름/로그인 ID가 함께 반환됩니다.
+`GET /api/groups/{groupId}/assignments?date=yyyy-MM-dd` — 割り当てられたアルバイトの名前 / ログイン ID も併せて返されます。
 
 operation::assignment-list[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
 
 [[assignment-candidates]]
-=== 배정 가능 알바생 조회
+=== 割り当て可能なアルバイト照会
 
-`GET /api/groups/{groupId}/assignments/candidates?date=yyyy-MM-dd&startTime=HH:mm&endTime=HH:mm` — 선택한 시간대(필요 인원 블록)의 모든 30분 슬롯을 근무 가능 시간으로 등록한 활성 멤버 목록을 반환합니다. `alreadyAssigned=true` 인 멤버는 이미 해당 시간대 전체에 배정되어 있어 선택 불가로 표시해야 합니다.
+`GET /api/groups/{groupId}/assignments/candidates?date=yyyy-MM-dd&startTime=HH:mm&endTime=HH:mm` — 選択した時間帯(必要人数ブロック)のすべての30分スロットを勤務可能時間として登録している有効なメンバー一覧を返します。`alreadyAssigned=true` のメンバーはすでにその時間帯すべてに割り当て済みのため、選択不可として表示する必要があります。
 
 operation::assignment-candidates[snippets='http-request,path-parameters,query-parameters,http-response,response-fields']
 
 [[my-assignment]]
-== 내 스케줄 (My Schedule) — 알바 전용
+== マイシフト (My Schedule) — アルバイト専用
 
 [[my-assignment-list]]
-=== 내 확정 근무 조회
+=== 自分の確定シフト照会
 
-`GET /api/me/assignments?date=yyyy-MM-dd` — 로그인한 알바 본인의 확정 근무를 날짜별로 조회합니다. 소속된 모든 그룹의 배정이 함께 반환됩니다.
+`GET /api/me/assignments?date=yyyy-MM-dd` — ログインしたアルバイト本人の確定シフトを日付ごとに照会します。所属するすべてのグループの割り当てが併せて返されます。
 
 operation::my-assignment-list[snippets='http-request,query-parameters,http-response,response-fields']

@@ -35,10 +35,10 @@ public final class SlotTimes {
      */
     public static List<LocalTime> expand(LocalTime start, LocalTime end) {
         if (!isAligned(start) || !isAligned(end)) {
-            throw new InvalidSlotTimeException("시간은 30분 단위(정각/30분)여야 합니다: " + start + "~" + end);
+            throw new InvalidSlotTimeException("時間は30分単位(正時/30分)でなければなりません: " + start + "~" + end);
         }
         if (!end.isAfter(start)) {
-            throw new InvalidSlotTimeException("종료 시간은 시작 시간보다 뒤여야 합니다: " + start + "~" + end);
+            throw new InvalidSlotTimeException("終了時間は開始時間より後でなければなりません: " + start + "~" + end);
         }
         List<LocalTime> slots = new ArrayList<>();
         LocalTime cursor = start;

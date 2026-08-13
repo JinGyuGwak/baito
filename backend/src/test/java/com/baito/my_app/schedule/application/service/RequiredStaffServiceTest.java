@@ -81,24 +81,70 @@ class RequiredStaffServiceTest {
     }
 
     @Test
-    @DisplayName("성공 - 시간대가 변경되어 사라진 슬롯의 배정만 초기화한다")
-    void resetsAssignmentsForRemovedSlots() {
+    @DisplayName("성공 - 합쳐진 필요인원 블록 안 슬롯이 사라지면 블록 전체의 배정을 취소한다")
+    void cancelsWholeMergedBlockContainingRemovedSlot() {
         ownerOwnsGroup();
-        // 기존 설정: 09:00~11:00 (09:00, 09:30, 10:00, 10:30)
+        // 기존 설정: 09:00~13:00 이 하나의 연속 블록(09:00 ~ 12:30 슬롯). 배정은 09:00~12:00 구간에만 있다.
         given(requiredStaffSlotRepository.findByGroupIdAndWorkDate(GROUP_ID, DATE))
                 .willReturn(List.of(
-                        slot(LocalTime.of(9, 0), 2),
-                        slot(LocalTime.of(9, 30), 2),
-                        slot(LocalTime.of(10, 0), 2),
-                        slot(LocalTime.of(10, 30), 2)));
+                        slot(LocalTime.of(9, 0), 3), slot(LocalTime.of(9, 30), 3),
+                        slot(LocalTime.of(10, 0), 3), slot(LocalTime.of(10, 30), 3),
+                        slot(LocalTime.of(11, 0), 3), slot(LocalTime.of(11, 30), 3),
+                        slot(LocalTime.of(12, 0), 3), slot(LocalTime.of(12, 30), 3)));
 
-        // 변경: 09:00~10:30 → 10:30 슬롯이 사라진다
-        service.setRequiredStaff(command(interval(LocalTime.of(9, 0), LocalTime.of(10, 30), 2)));
+        // 변경: 12:00~13:00 을 비운다 → 12:00, 12:30 슬롯이 사라진다.
+        service.setRequiredStaff(command(interval(LocalTime.of(9, 0), LocalTime.of(12, 0), 3)));
 
+        // 사라진 슬롯이 걸친 블록(09:00~13:00) 전체가 모든 회원 기준으로 취소되어야 한다.
         ArgumentCaptor<List<LocalTime>> captor = ArgumentCaptor.forClass(List.class);
         verify(shiftAssignmentRepository)
                 .deleteConfirmedInSlotsForAllMembers(eq(GROUP_ID), eq(DATE), captor.capture());
-        assertThat(captor.getValue()).containsExactly(LocalTime.of(10, 30));
+        assertThat(captor.getValue()).containsExactly(
+                LocalTime.of(9, 0), LocalTime.of(9, 30), LocalTime.of(10, 0), LocalTime.of(10, 30),
+                LocalTime.of(11, 0), LocalTime.of(11, 30), LocalTime.of(12, 0), LocalTime.of(12, 30));
+    }
+
+    @Test
+    @DisplayName("성공 - 인접 시간대가 추가되어 블록이 커지면(병합) 기존 블록의 배정을 취소한다")
+    void cancelsWhenBlockGrowsByMerge() {
+        ownerOwnsGroup();
+        // 기존 설정: 09:00~12:00 (09:00 ~ 11:30 슬롯). 배정은 이 구간에만 있다.
+        given(requiredStaffSlotRepository.findByGroupIdAndWorkDate(GROUP_ID, DATE))
+                .willReturn(List.of(
+                        slot(LocalTime.of(9, 0), 1), slot(LocalTime.of(9, 30), 1),
+                        slot(LocalTime.of(10, 0), 1), slot(LocalTime.of(10, 30), 1),
+                        slot(LocalTime.of(11, 0), 1), slot(LocalTime.of(11, 30), 1)));
+
+        // 변경: 12:00~13:00 을 붙여 09:00~13:00 하나의 블록으로 커진다(사라진 슬롯은 없음).
+        service.setRequiredStaff(command(interval(LocalTime.of(9, 0), LocalTime.of(13, 0), 1)));
+
+        // 커진 블록의 기존 슬롯(09:00~11:30)에 있던 배정이 모두 취소되어야 한다.
+        ArgumentCaptor<List<LocalTime>> captor = ArgumentCaptor.forClass(List.class);
+        verify(shiftAssignmentRepository)
+                .deleteConfirmedInSlotsForAllMembers(eq(GROUP_ID), eq(DATE), captor.capture());
+        assertThat(captor.getValue()).containsExactly(
+                LocalTime.of(9, 0), LocalTime.of(9, 30), LocalTime.of(10, 0),
+                LocalTime.of(10, 30), LocalTime.of(11, 0), LocalTime.of(11, 30));
+    }
+
+    @Test
+    @DisplayName("성공 - 사라진 슬롯과 떨어진 다른 연속 블록의 배정은 유지한다")
+    void keepsUnaffectedBlocks() {
+        ownerOwnsGroup();
+        // 서로 떨어진 두 블록: 09:00~10:00, 14:00~15:00
+        given(requiredStaffSlotRepository.findByGroupIdAndWorkDate(GROUP_ID, DATE))
+                .willReturn(List.of(
+                        slot(LocalTime.of(9, 0), 1), slot(LocalTime.of(9, 30), 1),
+                        slot(LocalTime.of(14, 0), 1), slot(LocalTime.of(14, 30), 1)));
+
+        // 변경: 09:00 블록만 비운다 → 09:00, 09:30 슬롯이 사라진다.
+        service.setRequiredStaff(command(interval(LocalTime.of(14, 0), LocalTime.of(15, 0), 1)));
+
+        // 사라진 블록만 취소되고 14:00 블록은 취소 대상에 포함되지 않는다.
+        ArgumentCaptor<List<LocalTime>> captor = ArgumentCaptor.forClass(List.class);
+        verify(shiftAssignmentRepository)
+                .deleteConfirmedInSlotsForAllMembers(eq(GROUP_ID), eq(DATE), captor.capture());
+        assertThat(captor.getValue()).containsExactly(LocalTime.of(9, 0), LocalTime.of(9, 30));
     }
 
     @Test
@@ -113,9 +159,29 @@ class RequiredStaffServiceTest {
         // 같은 시간대, 인원만 3명으로 변경
         service.setRequiredStaff(command(interval(LocalTime.of(9, 0), LocalTime.of(10, 0), 3)));
 
-        ArgumentCaptor<List<LocalTime>> captor = ArgumentCaptor.forClass(List.class);
+        // 사라진 슬롯이 없으므로 배정 삭제를 아예 시도하지 않는다.
+        verify(shiftAssignmentRepository, never())
+                .deleteConfirmedInSlotsForAllMembers(eq(GROUP_ID), eq(DATE), anyList());
+    }
+
+    @Test
+    @DisplayName("성공 - 빈 구간 목록이면 하루 전체를 비우고 배정도 전부 취소한다")
+    void clearsWholeDayWithEmptyIntervals() {
+        ownerOwnsGroup();
+        // 기존 설정: 09:00~10:00 (09:00, 09:30)
+        given(requiredStaffSlotRepository.findByGroupIdAndWorkDate(GROUP_ID, DATE))
+                .willReturn(List.of(slot(LocalTime.of(9, 0), 2), slot(LocalTime.of(9, 30), 2)));
+
+        // 빈 구간 목록으로 저장 → 하루 전체 삭제
+        service.setRequiredStaff(command());
+
+        verify(requiredStaffSlotRepository).deleteByGroupIdAndWorkDate(GROUP_ID, DATE);
+        ArgumentCaptor<List<LocalTime>> cancelCaptor = ArgumentCaptor.forClass(List.class);
         verify(shiftAssignmentRepository)
-                .deleteConfirmedInSlotsForAllMembers(eq(GROUP_ID), eq(DATE), captor.capture());
+                .deleteConfirmedInSlotsForAllMembers(eq(GROUP_ID), eq(DATE), cancelCaptor.capture());
+        assertThat(cancelCaptor.getValue()).containsExactly(LocalTime.of(9, 0), LocalTime.of(9, 30));
+        ArgumentCaptor<List<RequiredStaffSlot>> captor = ArgumentCaptor.forClass(List.class);
+        verify(requiredStaffSlotRepository).saveAll(captor.capture());
         assertThat(captor.getValue()).isEmpty();
     }
 

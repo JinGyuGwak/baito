@@ -5,7 +5,6 @@ import com.baito.my_app.schedule.application.port.in.GetScheduleQuery;
 import com.baito.my_app.schedule.application.port.in.SetRequiredStaffUseCase;
 import com.baito.my_app.schedule.domain.RequiredStaffSlot;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
@@ -69,7 +68,8 @@ public class RequiredStaffController {
     public static class SetRequiredStaffRequest {
         @NotNull
         private LocalDate workDate;
-        @NotEmpty
+        // 빈 목록 허용: 하루의 모든 시간대를 비우는(전체 삭제) 저장을 지원한다.
+        @NotNull
         @Valid
         private List<IntervalRequest> intervals;
     }

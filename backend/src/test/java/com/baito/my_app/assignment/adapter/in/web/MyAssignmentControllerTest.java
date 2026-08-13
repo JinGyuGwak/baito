@@ -42,10 +42,10 @@ class MyAssignmentControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$[0].groupId").value(10))
                 .andExpect(jsonPath("$[0].startTime").value("09:00:00"))
                 .andDo(document("my-assignment-list",
-                        queryParameters(parameterWithName("date").description("조회 날짜 (yyyy-MM-dd)")),
+                        queryParameters(parameterWithName("date").description("照会日 (yyyy-MM-dd)")),
                         responseFields(
-                                fieldWithPath("[].groupId").description("배정된 그룹 ID"),
-                                fieldWithPath("[].startTime").description("슬롯 시작 시각 (HH:mm:ss)"))));
+                                fieldWithPath("[].groupId").description("割り当てられたグループID"),
+                                fieldWithPath("[].startTime").description("スロット開始時刻 (HH:mm:ss)"))));
     }
 
     @Test

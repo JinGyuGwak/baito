@@ -50,13 +50,26 @@ class RequiredStaffControllerTest extends RestDocsSupport {
                         .content(body))
                 .andExpect(status().isNoContent())
                 .andDo(document("required-staff-set",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
                         requestFields(
-                                fieldWithPath("workDate").description("근무 날짜 (yyyy-MM-dd)"),
-                                fieldWithPath("intervals").description("필요 인원 구간 목록 (기존 값 전체 교체)"),
-                                fieldWithPath("intervals[].startTime").description("구간 시작 시각 (HH:mm)"),
-                                fieldWithPath("intervals[].endTime").description("구간 종료 시각 (HH:mm)"),
-                                fieldWithPath("intervals[].requiredCount").description("필요 인원 수 (0 이상)"))));
+                                fieldWithPath("workDate").description("勤務日 (yyyy-MM-dd)"),
+                                fieldWithPath("intervals").description("必要人数の区間リスト (既存の値を全て置換)"),
+                                fieldWithPath("intervals[].startTime").description("区間の開始時刻 (HH:mm)"),
+                                fieldWithPath("intervals[].endTime").description("区間の終了時刻 (HH:mm)"),
+                                fieldWithPath("intervals[].requiredCount").description("必要人数 (0以上)"))));
+    }
+
+    @Test
+    @DisplayName("필요 인원 설정 - 빈 구간 목록(하루 전체 비우기)도 204")
+    void setEmptyIntervals() throws Exception {
+        String body = objectMapper.writeValueAsString(Map.of(
+                "workDate", "2026-05-10",
+                "intervals", List.of()));
+
+        mockMvc.perform(put("/api/groups/{groupId}/required-staff", 10L).with(owner())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -71,10 +84,10 @@ class RequiredStaffControllerTest extends RestDocsSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].requiredCount").value(2))
                 .andDo(document("required-staff-get",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
-                        queryParameters(parameterWithName("date").description("조회 날짜 (yyyy-MM-dd)")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
+                        queryParameters(parameterWithName("date").description("照会日 (yyyy-MM-dd)")),
                         responseFields(
-                                fieldWithPath("[].startTime").description("30분 슬롯 시작 시각 (HH:mm:ss)"),
-                                fieldWithPath("[].requiredCount").description("해당 슬롯 필요 인원 수"))));
+                                fieldWithPath("[].startTime").description("30分スロットの開始時刻 (HH:mm:ss)"),
+                                fieldWithPath("[].requiredCount").description("該当スロットの必要人数"))));
     }
 }
