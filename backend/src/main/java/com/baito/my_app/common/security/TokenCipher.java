@@ -48,7 +48,7 @@ public class TokenCipher {
                     .array();
             return Base64.getEncoder().encodeToString(packed);
         } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("토큰 암호화에 실패했습니다.", e);
+            throw new IllegalStateException("トークンの暗号化に失敗しました。", e);
         }
     }
 
@@ -64,7 +64,7 @@ public class TokenCipher {
             cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_LENGTH_BITS, iv));
             return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
         } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("토큰 복호화에 실패했습니다.", e);
+            throw new IllegalStateException("トークンの復号に失敗しました。", e);
         }
     }
 }

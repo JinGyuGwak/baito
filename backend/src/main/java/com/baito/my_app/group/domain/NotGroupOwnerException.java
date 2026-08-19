@@ -7,6 +7,6 @@ import com.baito.my_app.common.exception.DomainException;
  */
 public class NotGroupOwnerException extends DomainException {
     public NotGroupOwnerException(Long groupId) {
-        super("해당 그룹의 소유자가 아닙니다: " + groupId);
+        super("このグループのオーナーではありません: " + groupId);
     }
 }

@@ -8,6 +8,6 @@ import com.baito.my_app.common.exception.DomainException;
  */
 public class InvitationAccessDeniedException extends DomainException {
     public InvitationAccessDeniedException() {
-        super("해당 초대에 대한 권한이 없습니다.");
+        super("この招待に対する権限がありません。");
     }
 }

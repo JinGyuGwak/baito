@@ -65,7 +65,7 @@ public class MembershipQueryService implements GetJoinedGroupsQuery, GetGroupMem
                             member != null ? member.getLoginId() : null,
                             ms.getJoinedAt());
                 })
-                .sorted(Comparator.comparing(GroupMember::name,
+                .sorted(Comparator.comparing(GroupMember::getName,
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }

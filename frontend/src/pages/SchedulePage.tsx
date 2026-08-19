@@ -23,6 +23,7 @@ import { DateNavigator } from '@/features/schedule/components/DateNavigator'
 import { formatDayTitle, toISODate } from '@/features/schedule/lib/date'
 import type { TimelineBlock } from '@/features/schedule/components/ScheduleTimeline'
 import {
+  SLOT_COUNT,
   START_HOUR,
   countsToBlocks,
   countsToIntervals,
@@ -68,14 +69,43 @@ export function SchedulePage() {
 
   const dirty = useMemo(() => counts.some((c, i) => c !== baseline[i]), [counts, baseline])
 
-  // 저장 시 필요인원이 0이 되는(=제거되는) 슬롯에 이미 배정된 인원.
-  // 서버는 이 슬롯들의 배정을 초기화하므로 저장 전 경고한다.
+  // 기존(baseline)과 변경(counts) 필요인원의 합집합을 연속 구간으로 나눈다.
+  // 한 구간 안에서 슬롯 유무가 달라지면(슬롯이 사라져 블록이 줄거나, 새 슬롯이 붙어 블록이 커지면)
+  // 그 블록은 모양이 바뀐 것이므로 블록 전체가 초기화 대상이 된다. 서버도 같은 방식으로 동작하므로,
+  // 그 블록의 기존 슬롯에 배정된 모든 알바를 저장 전 경고한다.
+  // (블록 전체가 취소되므로 시간대는 표시하지 않고 알바 단위로 한 번씩만 보여준다.)
   const affected = useMemo(() => {
-    const rows = (assignments.data ?? [])
-      .map((a) => ({ name: a.memberName ?? '알바', slot: timeToSlot(a.startTime) }))
-      .filter((r) => r.slot >= 0 && counts[r.slot] === 0)
-    return rows.sort((x, y) => x.slot - y.slot || x.name.localeCompare(y.name))
-  }, [assignments.data, counts])
+    const affectedSlots = new Array<boolean>(SLOT_COUNT).fill(false)
+    const inUnion = (k: number) => baseline[k] > 0 || counts[k] > 0
+    let i = 0
+    while (i < SLOT_COUNT) {
+      if (!inUnion(i)) {
+        i++
+        continue
+      }
+      let end = i
+      while (end + 1 < SLOT_COUNT && inUnion(end + 1)) end++
+      // 이 연속 구간에서 기존/변경의 슬롯 유무가 하나라도 다르면 블록 모양이 바뀐 것.
+      let shapeChanged = false
+      for (let k = i; k <= end; k++) {
+        if ((baseline[k] > 0) !== (counts[k] > 0)) shapeChanged = true
+      }
+      // 배정은 기존 슬롯(baseline > 0)에만 존재할 수 있으므로 그 슬롯만 대상으로 표시.
+      if (shapeChanged) for (let k = i; k <= end; k++) if (baseline[k] > 0) affectedSlots[k] = true
+      i = end + 1
+    }
+
+    const byMember = new Map<number, string>()
+    for (const a of assignments.data ?? []) {
+      const slot = timeToSlot(a.startTime)
+      if (slot >= 0 && affectedSlots[slot] && !byMember.has(a.memberId)) {
+        byMember.set(a.memberId, a.memberName ?? '알바')
+      }
+    }
+    return [...byMember.entries()]
+      .map(([memberId, name]) => ({ memberId, name }))
+      .sort((x, y) => x.name.localeCompare(y.name))
+  }, [assignments.data, counts, baseline])
 
   const displayBlocks: TimelineBlock[] = useMemo(
     () =>
@@ -249,7 +279,7 @@ function ResetAssignmentDialog({
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  affected: { name: string; slot: number }[]
+  affected: { memberId: number; name: string }[]
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -264,18 +294,18 @@ function ResetAssignmentDialog({
             배정 정보가 초기화돼요
           </DialogTitle>
           <DialogDescription className="pt-1">
-            변경하려는 시간대에 이미 배정된 알바가 있어요. 시간을 변경하면 아래 배정 정보가 초기화됩니다. 계속하시겠어요?
+            변경하려는 시간대에 이미 배정된 알바가 있어요. 시간을 변경하면 해당 근무 블록의 배정이 통째로 초기화됩니다. 계속하시겠어요?
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-52 overflow-y-auto rounded-xl bg-secondary/60 p-3 text-[13px]">
           <ul className="flex flex-col gap-1.5">
-            {affected.map((r, i) => (
-              <li key={`${r.slot}-${r.name}-${i}`} className="flex items-center justify-between">
-                <span className="font-semibold">{r.name}</span>
-                <span className="text-muted-foreground">
-                  {slotToTime(r.slot)} – {slotToTime(r.slot + 1)}
+            {affected.map((r) => (
+              <li key={r.memberId} className="flex items-center gap-2">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                  {r.name.slice(0, 1)}
                 </span>
+                <span className="font-semibold">{r.name}</span>
               </li>
             ))}
           </ul>

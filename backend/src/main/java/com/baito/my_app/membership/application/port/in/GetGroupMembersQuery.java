@@ -1,5 +1,10 @@
 package com.baito.my_app.membership.application.port.in;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,6 +15,14 @@ public interface GetGroupMembersQuery {
 
     List<GroupMember> getGroupMembers(Long groupId, Long ownerId);
 
-    record GroupMember(Long memberId, String name, String loginId, LocalDateTime joinedAt) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    class GroupMember {
+        private Long memberId;
+        private String name;
+        private String loginId;
+        private LocalDateTime joinedAt;
     }
 }

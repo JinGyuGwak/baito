@@ -3,6 +3,10 @@ package com.baito.my_app.invitation.application.port.in;
 import com.baito.my_app.common.domain.PageResult;
 import com.baito.my_app.invitation.domain.Invitation;
 import com.baito.my_app.invitation.domain.InvitationStatus;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -24,10 +28,24 @@ public interface GetInvitationsQuery {
     List<ReceivedInvitation> getReceivedPendingInvitations(Long inviteeId);
 
     /** A sent invitation joined with the invitee's identity for display. */
-    record SentInvitation(Invitation invitation, String inviteeName, String inviteeLoginId) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    class SentInvitation {
+        private Invitation invitation;
+        private String inviteeName;
+        private String inviteeLoginId;
     }
 
     /** A received invitation joined with the group name and inviting owner's name for display. */
-    record ReceivedInvitation(Invitation invitation, String groupName, String inviterName) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    class ReceivedInvitation {
+        private Invitation invitation;
+        private String groupName;
+        private String inviterName;
     }
 }

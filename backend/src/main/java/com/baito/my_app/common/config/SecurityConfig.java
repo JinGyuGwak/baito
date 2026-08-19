@@ -56,7 +56,7 @@ public class SecurityConfig {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\"}");
+                    response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"認証が必要です。\"}");
                 }));
         return http.build();
     }

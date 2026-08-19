@@ -21,13 +21,13 @@ public class MemberProfileService implements MemberProfileUseCase {
     @Transactional(readOnly = true)
     public Member getMyProfile(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberNotFoundException("会員が見つかりません。"));
     }
 
     @Override
     public Member changeName(Long memberId, String name) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberNotFoundException("会員が見つかりません。"));
         member.changeName(name);
         return memberRepository.save(member);
     }

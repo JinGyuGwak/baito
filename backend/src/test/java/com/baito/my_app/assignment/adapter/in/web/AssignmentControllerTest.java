@@ -61,14 +61,14 @@ class AssignmentControllerTest extends RestDocsSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assignedSlotCount").value(4))
                 .andDo(document("assignment-assign",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
                         requestFields(
-                                fieldWithPath("memberId").description("배정할 알바 회원"),
-                                fieldWithPath("workDate").description("근무 날짜 (yyyy-MM-dd)"),
-                                fieldWithPath("startTime").description("시작 시각 (HH:mm), 30분 단위"),
-                                fieldWithPath("endTime").description("종료 시각 (HH:mm), 30분 단위")),
+                                fieldWithPath("memberId").description("割り当てるアルバイト会員"),
+                                fieldWithPath("workDate").description("勤務日 (yyyy-MM-dd)"),
+                                fieldWithPath("startTime").description("開始時刻 (HH:mm), 30分単位"),
+                                fieldWithPath("endTime").description("終了時刻 (HH:mm), 30分単位")),
                         responseFields(
-                                fieldWithPath("assignedSlotCount").description("새로 배정된 30분 슬롯 수"))));
+                                fieldWithPath("assignedSlotCount").description("新たに割り当てられた30分スロット数"))));
     }
 
     @Test
@@ -90,9 +90,9 @@ class AssignmentControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.code").value("STAFF_QUOTA_EXCEEDED"))
                 .andDo(document("assignment-assign-quota-exceeded",
                         responseFields(
-                                fieldWithPath("code").description("에러 코드: `STAFF_QUOTA_EXCEEDED`"),
+                                fieldWithPath("code").description("エラーコード: `STAFF_QUOTA_EXCEEDED`"),
 
-                                fieldWithPath("message").description("에러 메시지"))));
+                                fieldWithPath("message").description("エラーメッセージ"))));
     }
 
     @Test
@@ -112,14 +112,14 @@ class AssignmentControllerTest extends RestDocsSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cancelledSlotCount").value(2))
                 .andDo(document("assignment-cancel",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
                         requestFields(
-                                fieldWithPath("memberId").description("배정을 취소할 알바 회원 ID"),
-                                fieldWithPath("workDate").description("근무 날짜 (yyyy-MM-dd)"),
-                                fieldWithPath("startTime").description("시작 시각 (HH:mm), 30분 단위"),
-                                fieldWithPath("endTime").description("종료 시각 (HH:mm), 30분 단위")),
+                                fieldWithPath("memberId").description("割り当てを解除するアルバイト会員ID"),
+                                fieldWithPath("workDate").description("勤務日 (yyyy-MM-dd)"),
+                                fieldWithPath("startTime").description("開始時刻 (HH:mm), 30分単位"),
+                                fieldWithPath("endTime").description("終了時刻 (HH:mm), 30分単位")),
                         responseFields(
-                                fieldWithPath("cancelledSlotCount").description("취소된 30분 슬롯 수 (확정 배정이 없던 슬롯은 무시)"))));
+                                fieldWithPath("cancelledSlotCount").description("解除された30分スロット数 (確定した割り当てがなかったスロットは無視)"))));
     }
 
     @Test
@@ -134,13 +134,13 @@ class AssignmentControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$[0].memberId").value(2))
                 .andExpect(jsonPath("$[0].memberName").value("김알바"))
                 .andDo(document("assignment-list",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
-                        queryParameters(parameterWithName("date").description("조회 날짜 (yyyy-MM-dd)")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
+                        queryParameters(parameterWithName("date").description("照会日 (yyyy-MM-dd)")),
                         responseFields(
-                                fieldWithPath("[].memberId").description("배정된 알바 회원 ID"),
-                                fieldWithPath("[].memberName").description("배정된 알바 이름"),
-                                fieldWithPath("[].memberLoginId").description("배정된 알바 로그인 ID"),
-                                fieldWithPath("[].startTime").description("슬롯 시작 시각 (HH:mm:ss)"))));
+                                fieldWithPath("[].memberId").description("割り当てられたアルバイト会員ID"),
+                                fieldWithPath("[].memberName").description("割り当てられたアルバイトの名前"),
+                                fieldWithPath("[].memberLoginId").description("割り当てられたアルバイトのログインID"),
+                                fieldWithPath("[].startTime").description("スロット開始時刻 (HH:mm:ss)"))));
     }
 
     @Test
@@ -165,18 +165,18 @@ class AssignmentControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$[0].alreadyAssigned").value(false))
                 .andExpect(jsonPath("$[1].alreadyAssigned").value(true))
                 .andDo(document("assignment-candidates",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
                         queryParameters(
-                                parameterWithName("date").description("근무 날짜 (yyyy-MM-dd)"),
-                                parameterWithName("startTime").description("시간대 시작 (HH:mm), 30분 단위"),
-                                parameterWithName("endTime").description("시간대 종료 (HH:mm), 30분 단위")),
+                                parameterWithName("date").description("勤務日 (yyyy-MM-dd)"),
+                                parameterWithName("startTime").description("時間帯の開始 (HH:mm), 30分単位"),
+                                parameterWithName("endTime").description("時間帯の終了 (HH:mm), 30分単位")),
                         responseFields(
-                                fieldWithPath("[].memberId").description("알바 회원 ID"),
-                                fieldWithPath("[].name").description("알바 이름"),
-                                fieldWithPath("[].loginId").description("알바 로그인 ID"),
-                                fieldWithPath("[].availableIntervals").description("해당 날짜의 근무 가능 시간대 목록"),
-                                fieldWithPath("[].availableIntervals[].startTime").description("가능 구간 시작 (HH:mm:ss)"),
-                                fieldWithPath("[].availableIntervals[].endTime").description("가능 구간 종료 (HH:mm:ss)"),
-                                fieldWithPath("[].alreadyAssigned").description("선택한 시간대 전체에 이미 배정되어 있으면 `true` (선택 불가로 표시)"))));
+                                fieldWithPath("[].memberId").description("アルバイト会員ID"),
+                                fieldWithPath("[].name").description("アルバイトの名前"),
+                                fieldWithPath("[].loginId").description("アルバイトのログインID"),
+                                fieldWithPath("[].availableIntervals").description("該当日の勤務可能時間帯リスト"),
+                                fieldWithPath("[].availableIntervals[].startTime").description("勤務可能区間の開始 (HH:mm:ss)"),
+                                fieldWithPath("[].availableIntervals[].endTime").description("勤務可能区間の終了 (HH:mm:ss)"),
+                                fieldWithPath("[].alreadyAssigned").description("選択した時間帯すべてに既に割り当て済みの場合 `true` (選択不可として表示)"))));
     }
 }

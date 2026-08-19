@@ -1,5 +1,10 @@
 package com.baito.my_app.assignment.application.port.in;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -19,10 +24,24 @@ public interface GetAssignmentCandidatesQuery {
      * @param availableIntervals the member's merged availability ranges for the whole day,
      *                           shown as "근무 가능 시간대" in the UI
      */
-    record Candidate(Long memberId, String name, String loginId,
-                     List<Interval> availableIntervals, boolean alreadyAssigned) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    class Candidate {
+        private Long memberId;
+        private String name;
+        private String loginId;
+        private List<Interval> availableIntervals;
+        private boolean alreadyAssigned;
     }
 
-    record Interval(LocalTime startTime, LocalTime endTime) {
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    class Interval {
+        private LocalTime startTime;
+        private LocalTime endTime;
     }
 }

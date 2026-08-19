@@ -45,12 +45,12 @@ class GroupMemberControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$[0].memberId").value(2))
                 .andExpect(jsonPath("$[0].name").value("김알바"))
                 .andDo(document("group-member-list",
-                        pathParameters(parameterWithName("groupId").description("그룹 ID")),
+                        pathParameters(parameterWithName("groupId").description("グループID")),
                         responseFields(
-                                fieldWithPath("[].memberId").description("알바 회원 ID"),
-                                fieldWithPath("[].name").description("알바 이름"),
-                                fieldWithPath("[].loginId").description("알바 로그인 ID"),
-                                fieldWithPath("[].joinedAt").description("그룹 합류 일시"))));
+                                fieldWithPath("[].memberId").description("アルバイト会員ID"),
+                                fieldWithPath("[].name").description("アルバイトの名前"),
+                                fieldWithPath("[].loginId").description("アルバイトのログインID"),
+                                fieldWithPath("[].joinedAt").description("グループ参加日時"))));
     }
 
     @Test
@@ -60,8 +60,8 @@ class GroupMemberControllerTest extends RestDocsSupport {
                 .andExpect(status().isNoContent())
                 .andDo(document("group-member-remove",
                         pathParameters(
-                                parameterWithName("groupId").description("그룹 ID"),
-                                parameterWithName("memberId").description("추방할 알바 회원 ID"))));
+                                parameterWithName("groupId").description("グループID"),
+                                parameterWithName("memberId").description("削除するアルバイト会員ID"))));
     }
 
     @Test
@@ -75,8 +75,8 @@ class GroupMemberControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.code").value("NOT_GROUP_MEMBER"))
                 .andDo(document("group-member-remove-not-member",
                         responseFields(
-                                fieldWithPath("code").description("에러 코드: `NOT_GROUP_MEMBER`"),
-                                fieldWithPath("message").description("에러 메시지"))));
+                                fieldWithPath("code").description("エラーコード: `NOT_GROUP_MEMBER`"),
+                                fieldWithPath("message").description("エラーメッセージ"))));
     }
 
     @Test

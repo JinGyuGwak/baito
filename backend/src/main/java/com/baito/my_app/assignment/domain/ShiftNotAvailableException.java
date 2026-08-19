@@ -11,6 +11,6 @@ import java.time.LocalTime;
  */
 public class ShiftNotAvailableException extends DomainException {
     public ShiftNotAvailableException(LocalDate workDate, LocalTime startTime) {
-        super("아르바이트생의 근무 가능 시간이 아닙니다: " + workDate + " " + startTime);
+        super("アルバイトの勤務可能時間ではありません: " + workDate + " " + startTime);
     }
 }

@@ -11,7 +11,7 @@ import java.time.LocalTime;
  */
 public class StaffQuotaExceededException extends DomainException {
     public StaffQuotaExceededException(LocalDate workDate, LocalTime startTime, int requiredCount) {
-        super("해당 시간대의 필요 인원(" + requiredCount + "명)이 이미 모두 배정되었습니다: "
+        super("この時間帯の必要人数(" + requiredCount + "名)はすでにすべて割り当てられています: "
                 + workDate + " " + startTime);
     }
 }

@@ -49,8 +49,8 @@ class InvitationQueryServiceTest {
         PageResult<SentInvitation> result =
                 service.getSentInvitations(1L, 10L, InvitationStatus.PENDING, 0, 10);
 
-        assertThat(result.totalElements()).isEqualTo(1);
-        assertThat(result.content()).containsExactly(
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent()).containsExactly(
                 new SentInvitation(invitation, "김알바", "worker01"));
     }
 
@@ -65,7 +65,7 @@ class InvitationQueryServiceTest {
 
         PageResult<SentInvitation> result = service.getSentInvitations(1L, 10L, null, 0, 10);
 
-        assertThat(result.content()).containsExactly(new SentInvitation(invitation, null, null));
+        assertThat(result.getContent()).containsExactly(new SentInvitation(invitation, null, null));
     }
 
     @Test

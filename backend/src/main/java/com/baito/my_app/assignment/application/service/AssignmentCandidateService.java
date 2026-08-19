@@ -94,7 +94,7 @@ public class AssignmentCandidateService implements GetAssignmentCandidatesQuery 
                         m.getId(), m.getName(), m.getLoginId(),
                         toIntervals(availabilityByMember.get(m.getId())),
                         assignedByMember.getOrDefault(m.getId(), Set.of()).containsAll(blockSlots)))
-                .sorted(Comparator.comparing(Candidate::name).thenComparing(Candidate::memberId))
+                .sorted(Comparator.comparing(Candidate::getName).thenComparing(Candidate::getMemberId))
                 .toList();
     }
 

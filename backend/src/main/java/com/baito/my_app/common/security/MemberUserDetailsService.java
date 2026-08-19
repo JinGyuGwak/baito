@@ -19,7 +19,7 @@ public class MemberUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
         Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 로그인 ID입니다: " + loginId));
+                .orElseThrow(() -> new UsernameNotFoundException("存在しないログインIDです: " + loginId));
         return new LoginMember(member.getId(), member.getLoginId(), member.getPassword(), member.getRole());
     }
 }

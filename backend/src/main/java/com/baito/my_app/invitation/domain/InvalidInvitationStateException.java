@@ -8,6 +8,6 @@ import com.baito.my_app.common.exception.DomainException;
  */
 public class InvalidInvitationStateException extends DomainException {
     public InvalidInvitationStateException(InvitationStatus current) {
-        super("PENDING 상태의 초대만 처리할 수 있습니다. 현재 상태: " + current);
+        super("PENDING状態の招待のみ処理できます。現在の状態: " + current);
     }
 }

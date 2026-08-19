@@ -77,11 +77,11 @@ class AssignmentCandidateServiceTest {
 
         assertThat(candidates).hasSize(1);
         Candidate c = candidates.get(0);
-        assertThat(c.memberId()).isEqualTo(2L);
-        assertThat(c.name()).isEqualTo("김알바");
-        assertThat(c.loginId()).isEqualTo("worker01");
-        assertThat(c.alreadyAssigned()).isFalse();
-        assertThat(c.availableIntervals())
+        assertThat(c.getMemberId()).isEqualTo(2L);
+        assertThat(c.getName()).isEqualTo("김알바");
+        assertThat(c.getLoginId()).isEqualTo("worker01");
+        assertThat(c.isAlreadyAssigned()).isFalse();
+        assertThat(c.getAvailableIntervals())
                 .containsExactly(new Interval(LocalTime.of(9, 0), LocalTime.of(10, 0)));
     }
 
@@ -104,7 +104,7 @@ class AssignmentCandidateServiceTest {
                 service.getCandidates(GROUP_ID, OWNER_ID, DATE, LocalTime.of(9, 0), LocalTime.of(10, 0));
 
         assertThat(candidates).singleElement()
-                .satisfies(c -> assertThat(c.alreadyAssigned()).isTrue());
+                .satisfies(c -> assertThat(c.isAlreadyAssigned()).isTrue());
     }
 
     @Test
@@ -125,7 +125,7 @@ class AssignmentCandidateServiceTest {
                 service.getCandidates(GROUP_ID, OWNER_ID, DATE, LocalTime.of(9, 0), LocalTime.of(10, 0));
 
         assertThat(candidates).singleElement()
-                .satisfies(c -> assertThat(c.alreadyAssigned()).isFalse());
+                .satisfies(c -> assertThat(c.isAlreadyAssigned()).isFalse());
     }
 
     @Test
@@ -145,7 +145,7 @@ class AssignmentCandidateServiceTest {
         List<Candidate> candidates =
                 service.getCandidates(GROUP_ID, OWNER_ID, DATE, LocalTime.of(9, 0), LocalTime.of(10, 0));
 
-        assertThat(candidates.get(0).availableIntervals()).containsExactly(
+        assertThat(candidates.get(0).getAvailableIntervals()).containsExactly(
                 new Interval(LocalTime.of(9, 0), LocalTime.of(10, 0)),
                 new Interval(LocalTime.of(14, 0), LocalTime.of(14, 30)));
     }

@@ -70,20 +70,20 @@ class InvitationPersistenceAdapterTest extends PersistenceTestSupport {
 
         // 상태 필터 없음 → 그룹의 전체 상태
         PageResult<Invitation> all = invitationRepository.findByInviterIdAndGroupId(OWNER_ID, GROUP_ID, null, 0, 10);
-        assertThat(all.totalElements()).isEqualTo(2);
+        assertThat(all.getTotalElements()).isEqualTo(2);
 
         // 상태 필터
         PageResult<Invitation> pendingOnly =
                 invitationRepository.findByInviterIdAndGroupId(OWNER_ID, GROUP_ID, InvitationStatus.PENDING, 0, 10);
-        assertThat(pendingOnly.content())
+        assertThat(pendingOnly.getContent())
                 .extracting(Invitation::getId)
                 .containsExactly(pending.getId());
 
         // 페이징
         PageResult<Invitation> firstPage =
                 invitationRepository.findByInviterIdAndGroupId(OWNER_ID, GROUP_ID, null, 0, 1);
-        assertThat(firstPage.content()).hasSize(1);
-        assertThat(firstPage.totalPages()).isEqualTo(2);
+        assertThat(firstPage.getContent()).hasSize(1);
+        assertThat(firstPage.getTotalPages()).isEqualTo(2);
 
         assertThat(invitationRepository.findPendingByInviteeId(INVITEE_ID))
                 .extracting(Invitation::getId)

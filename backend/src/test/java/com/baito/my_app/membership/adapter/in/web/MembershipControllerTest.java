@@ -35,8 +35,8 @@ class MembershipControllerTest extends RestDocsSupport {
                 .andExpect(jsonPath("$[0].id").value(10))
                 .andDo(document("membership-groups",
                         responseFields(
-                                fieldWithPath("[].id").description("그룹 ID"),
-                                fieldWithPath("[].name").description("그룹 이름"),
-                                fieldWithPath("[].description").description("설명"))));
+                                fieldWithPath("[].id").description("グループID"),
+                                fieldWithPath("[].name").description("グループ名"),
+                                fieldWithPath("[].description").description("説明"))));
     }
 }

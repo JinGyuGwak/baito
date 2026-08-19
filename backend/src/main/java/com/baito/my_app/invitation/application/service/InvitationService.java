@@ -50,12 +50,12 @@ public class InvitationService implements InviteMemberUseCase, CancelInvitationU
 
         Member invitee = memberRepository.findByLoginId(command.getInviteeLoginId())
                 .orElseThrow(() -> new InvalidInviteeException(
-                        "존재하지 않는 로그인 ID입니다: " + command.getInviteeLoginId()));
+                        "存在しないログインIDです: " + command.getInviteeLoginId()));
         if (!invitee.isPartTimer()) {
-            throw new InvalidInviteeException("아르바이트생만 초대할 수 있습니다: " + command.getInviteeLoginId());
+            throw new InvalidInviteeException("アルバイトのみ招待できます: " + command.getInviteeLoginId());
         }
         if (membershipRepository.existsActiveMembership(command.getGroupId(), invitee.getId())) {
-            throw new InvalidInviteeException("이미 그룹에 소속된 아르바이트생입니다: " + command.getInviteeLoginId());
+            throw new InvalidInviteeException("すでにグループに所属しているアルバイトです: " + command.getInviteeLoginId());
         }
         if (invitationRepository.existsPendingByGroupIdAndInviteeId(command.getGroupId(), invitee.getId())) {
             throw new DuplicatePendingInvitationException();

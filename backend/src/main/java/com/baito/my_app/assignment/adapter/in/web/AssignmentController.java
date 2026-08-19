@@ -139,7 +139,7 @@ public class AssignmentController {
         private LocalTime startTime;
 
         static AssignmentResponse from(GetAssignmentsQuery.AssignmentDetail d) {
-            return new AssignmentResponse(d.memberId(), d.memberName(), d.memberLoginId(), d.startTime());
+            return new AssignmentResponse(d.getMemberId(), d.getMemberName(), d.getMemberLoginId(), d.getStartTime());
         }
     }
 
@@ -154,11 +154,11 @@ public class AssignmentController {
         private boolean alreadyAssigned;
 
         static CandidateResponse from(GetAssignmentCandidatesQuery.Candidate c) {
-            return new CandidateResponse(c.memberId(), c.name(), c.loginId(),
-                    c.availableIntervals().stream()
-                            .map(iv -> new IntervalResponse(iv.startTime(), iv.endTime()))
+            return new CandidateResponse(c.getMemberId(), c.getName(), c.getLoginId(),
+                    c.getAvailableIntervals().stream()
+                            .map(iv -> new IntervalResponse(iv.getStartTime(), iv.getEndTime()))
                             .toList(),
-                    c.alreadyAssigned());
+                    c.isAlreadyAssigned());
         }
     }
 
