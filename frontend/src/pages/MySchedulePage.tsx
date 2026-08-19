@@ -24,7 +24,7 @@ export function MySchedulePage() {
   const myGroups = useMyGroupsQuery()
   const schedule = useMyScheduleQuery(date)
 
-  const groupName = (id: number) => myGroups.data?.find((g) => g.id === id)?.name ?? `그룹 #${id}`
+  const groupName = (id: number) => myGroups.data?.find((g) => g.id === id)?.name ?? `グループ #${id}`
 
   // 그룹별로 슬롯을 모아 연속 구간(블록)으로 합침.
   const shifts = useMemo<ShiftBlock[]>(() => {
@@ -51,7 +51,7 @@ export function MySchedulePage() {
     endSlot: s.endSlot,
     tone: 'primary',
     title: s.groupName,
-    sub: `${slotToTime(s.startSlot)} – ${slotToTime(s.endSlot)} · 배정 완료`,
+    sub: `${slotToTime(s.startSlot)} – ${slotToTime(s.endSlot)} · 割り当て済み`,
   }))
 
   const totalSlots = schedule.data?.length ?? 0
@@ -62,9 +62,9 @@ export function MySchedulePage() {
   return (
     <div className="px-8 pb-10 pt-6">
       <div className="mb-4">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">내 스케줄</h1>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">マイシフト</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {formatDayTitle(date)} · 확정된 근무{' '}
+          {formatDayTitle(date)} · 確定したシフト{' '}
           <b className="text-foreground">{formatDuration(totalSlots)}</b>
         </p>
       </div>
@@ -74,9 +74,9 @@ export function MySchedulePage() {
         <div className="flex flex-col gap-3">
           <DateNavigator date={date} onChange={setDate} />
           <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="mb-2.5 text-[13px] font-extrabold">이 날 요약</div>
+            <div className="mb-2.5 text-[13px] font-extrabold">この日の概要</div>
             {shifts.length === 0 ? (
-              <p className="text-[13px] text-muted-foreground">확정된 근무가 없어요.</p>
+              <p className="text-[13px] text-muted-foreground">確定したシフトがありません。</p>
             ) : (
               <div className="flex flex-col gap-2 text-[13px]">
                 {shifts.map((s) => (
@@ -95,12 +95,12 @@ export function MySchedulePage() {
         {/* 중: 타임라인 */}
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground">
-            <IconClock size={14} /> 운영 시간 08:00 ~ 22:00
+            <IconClock size={14} /> 営業時間 08:00 〜 22:00
           </div>
           {schedule.isPending ? (
             <div className="h-[784px] animate-pulse rounded-2xl border border-border bg-secondary/40" />
           ) : schedule.isError ? (
-            <Centered title="불러오지 못했어요" text={schedule.error.message} />
+            <Centered title="読み込めませんでした" text={schedule.error.message} />
           ) : (
             <ScheduleTimeline blocks={timelineBlocks} selection={null} onSelectionChange={() => {}} nowSlot={nowSlot} readOnly />
           )}
@@ -109,11 +109,11 @@ export function MySchedulePage() {
         {/* 우: 확정 근무 목록 */}
         <div className="rounded-2xl border border-border bg-card p-[18px]">
           <span className="inline-flex h-[26px] items-center rounded-full bg-[#EEF3FF] px-2.5 text-xs font-semibold text-primary">
-            확정된 근무
+            確定したシフト
           </span>
           {shifts.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">
-              아직 이 날 배정된 근무가 없어요. 점주님이 배정하면 여기에 표시돼요.
+              まだこの日に割り当てられたシフトがありません。オーナーが割り当てるとここに表示されます。
             </p>
           ) : (
             <div className="mt-3 flex flex-col gap-2">
@@ -136,7 +136,7 @@ export function MySchedulePage() {
               <IconBell size={16} />
             </span>
             <p className="text-[12px] leading-relaxed text-muted-foreground">
-              점주님이 배정을 변경하면 자동으로 반영돼요. 대타 요청 기능은 준비 중이에요.
+              オーナーが割り当てを変更すると自動的に反映されます。代打リクエスト機能は準備中です。
             </p>
           </div>
         </div>
@@ -161,6 +161,6 @@ function formatDuration(slots: number): string {
   const minutes = slots * 30
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  if (h === 0 && m === 0) return '없음'
-  return [h > 0 ? `${h}시간` : '', m > 0 ? `${m}분` : ''].filter(Boolean).join(' ')
+  if (h === 0 && m === 0) return 'なし'
+  return [h > 0 ? `${h}時間` : '', m > 0 ? `${m}分` : ''].filter(Boolean).join(' ')
 }

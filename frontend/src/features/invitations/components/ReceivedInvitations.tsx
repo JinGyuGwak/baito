@@ -21,7 +21,7 @@ export function ReceivedInvitations() {
   return (
     <section className="mb-8">
       <h2 className="mb-3 text-[13px] font-extrabold uppercase tracking-[0.04em] text-muted-foreground">
-        받은 초대 · {received.data.length}
+        受け取った招待 · {received.data.length}
       </h2>
       <div className="flex flex-col gap-3">
         {received.data.map((inv) => (
@@ -38,8 +38,8 @@ function InvitationCard({ invitation }: { invitation: Invitation }) {
   const busy = accept.isPending || reject.isPending
   const error = accept.error ?? reject.error
 
-  const groupName = invitation.groupName ?? `그룹 #${invitation.groupId}`
-  const inviterName = invitation.inviterName ?? `점주 #${invitation.inviterId}`
+  const groupName = invitation.groupName ?? `グループ #${invitation.groupId}`
+  const inviterName = invitation.inviterName ?? `オーナー #${invitation.inviterId}`
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
@@ -52,7 +52,7 @@ function InvitationCard({ invitation }: { invitation: Invitation }) {
           <div className="flex-1">
             <div className="text-[17px] font-extrabold">{groupName}</div>
             <div className="mt-1 text-[13px] text-muted-foreground">
-              초대한 점주 {inviterName} · {formatRelative(invitation.createdAt)}
+              招待したオーナー {inviterName} · {formatRelative(invitation.createdAt)}
             </div>
           </div>
         </div>
@@ -70,14 +70,14 @@ function InvitationCard({ invitation }: { invitation: Invitation }) {
             disabled={busy}
             className="flex-1 font-bold text-muted-foreground"
           >
-            {reject.isPending ? <Spinner size={14} /> : <IconX size={14} />} 거절
+            {reject.isPending ? <Spinner size={14} /> : <IconX size={14} />} 拒否
           </Button>
           <Button
             onClick={() => accept.mutate(invitation.id)}
             disabled={busy}
             className="flex-[2] font-bold"
           >
-            {accept.isPending ? <Spinner size={14} /> : <IconCheck size={16} stroke={2.5} />} 수락하고 가입
+            {accept.isPending ? <Spinner size={14} /> : <IconCheck size={16} stroke={2.5} />} 承認して参加
           </Button>
         </div>
       </div>
@@ -91,9 +91,9 @@ function formatRelative(iso: string): string {
   if (Number.isNaN(then)) return ''
   const diff = Date.now() - then
   const min = Math.floor(diff / 60000)
-  if (min < 1) return '방금'
-  if (min < 60) return `${min}분 전`
+  if (min < 1) return 'たった今'
+  if (min < 60) return `${min}分前`
   const hr = Math.floor(min / 60)
-  if (hr < 24) return `${hr}시간 전`
-  return `${Math.floor(hr / 24)}일 전`
+  if (hr < 24) return `${hr}時間前`
+  return `${Math.floor(hr / 24)}日前`
 }

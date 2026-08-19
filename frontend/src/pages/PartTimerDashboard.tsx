@@ -19,8 +19,8 @@ export function PartTimerDashboard() {
       <ReceivedInvitations />
 
       <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">내 그룹</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">소속 매장에서 근무 가능 시간을 등록하세요</p>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">マイグループ</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">所属店舗で勤務可能時間を登録しましょう</p>
       </div>
 
       {groups.isPending ? (
@@ -30,12 +30,12 @@ export function PartTimerDashboard() {
           ))}
         </div>
       ) : groups.isError ? (
-        <Centered icon={<IconWarn size={28} />} title="불러오지 못했어요" text={groups.error.message} />
+        <Centered icon={<IconWarn size={28} />} title="読み込めませんでした" text={groups.error.message} />
       ) : groups.data.length === 0 ? (
         <Centered
           icon={<IconUsers size={28} />}
-          title="아직 소속된 매장이 없어요"
-          text="점주님이 초대하면 여기에 매장이 표시돼요."
+          title="まだ所属している店舗がありません"
+          text="オーナーが招待するとここに店舗が表示されます。"
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -62,11 +62,11 @@ function GroupCard({ group, tone }: { group: MembershipGroup; tone: { bg: string
       </div>
       <div className="text-base font-extrabold">{group.name}</div>
       <p className="mt-1 line-clamp-2 min-h-[32px] text-xs text-muted-foreground">
-        {group.description || '설명이 없어요'}
+        {group.description || '説明がありません'}
       </p>
       <div className="my-4 h-px bg-border" />
       <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-        <IconClock size={14} /> 근무 가능 시간 등록하기
+        <IconClock size={14} /> 勤務可能時間を登録する
       </div>
     </Link>
   )

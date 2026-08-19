@@ -18,20 +18,20 @@ import { ScheduleTabs } from '@/features/schedule/components/ScheduleTabs'
 import { toISODate } from '@/features/schedule/lib/date'
 
 const STATUS_META: Record<InvitationStatus, { label: string; cls: string; dot: string }> = {
-  PENDING: { label: '대기 중', cls: 'bg-[#FFF6E5] text-[#B0750A]', dot: '#F59E0B' },
-  ACCEPTED: { label: '수락됨', cls: 'bg-[#E7F8F1] text-[#047857]', dot: '#10B981' },
-  REJECTED: { label: '거절됨', cls: 'bg-secondary text-muted-foreground', dot: '#B0B8C1' },
-  CANCELLED: { label: '취소됨', cls: 'bg-secondary text-muted-foreground', dot: '#B0B8C1' },
+  PENDING: { label: '保留中', cls: 'bg-[#FFF6E5] text-[#B0750A]', dot: '#F59E0B' },
+  ACCEPTED: { label: '承認済み', cls: 'bg-[#E7F8F1] text-[#047857]', dot: '#10B981' },
+  REJECTED: { label: '拒否済み', cls: 'bg-secondary text-muted-foreground', dot: '#B0B8C1' },
+  CANCELLED: { label: 'キャンセル済み', cls: 'bg-secondary text-muted-foreground', dot: '#B0B8C1' },
 }
 
 type StatusFilter = InvitationStatus | 'ALL'
 
 const FILTERS: { key: StatusFilter; label: string }[] = [
-  { key: 'ALL', label: '전체' },
-  { key: 'PENDING', label: '대기' },
-  { key: 'ACCEPTED', label: '수락' },
-  { key: 'REJECTED', label: '거절' },
-  { key: 'CANCELLED', label: '취소' },
+  { key: 'ALL', label: 'すべて' },
+  { key: 'PENDING', label: '保留' },
+  { key: 'ACCEPTED', label: '承認' },
+  { key: 'REJECTED', label: '拒否' },
+  { key: 'CANCELLED', label: 'キャンセル' },
 ]
 
 const PAGE_SIZE = 10
@@ -43,7 +43,7 @@ export function InvitationsPage() {
   const today = toISODate(new Date())
 
   const groups = useGroupsQuery()
-  const groupName = groups.data?.find((g) => g.id === groupId)?.name ?? '매장'
+  const groupName = groups.data?.find((g) => g.id === groupId)?.name ?? '店舗'
 
   const [filter, setFilter] = useState<StatusFilter>('ALL')
   const [page, setPage] = useState(0)
@@ -63,7 +63,7 @@ export function InvitationsPage() {
   if (!Number.isFinite(groupId)) {
     return (
       <div className="px-8 pt-6">
-        <CenteredMessage title="잘못된 접근" text="그룹을 찾을 수 없어요." />
+        <CenteredMessage title="不正なアクセス" text="グループが見つかりません。" />
       </div>
     )
   }
@@ -80,11 +80,11 @@ export function InvitationsPage() {
         <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
           <span>{groupName}</span>
           <IconChevR size={12} />
-          <span className="font-bold text-foreground">알바생 초대관리</span>
+          <span className="font-bold text-foreground">アルバイト招待管理</span>
         </div>
-        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">알바생 초대 관리</h1>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">アルバイト招待管理</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          알바생의 아이디로 초대를 보내면, 상대가 수락할 때 그룹에 합류해요
+          アルバイトのIDに招待を送ると、相手が承認したときにグループに参加します
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export function InvitationsPage() {
         <div className="rounded-2xl border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
             <div className="text-xs font-bold uppercase tracking-[0.04em] text-muted-foreground">
-              보낸 초대{totalElements > 0 && ` · ${totalElements}`}
+              送信した招待{totalElements > 0 && ` · ${totalElements}`}
             </div>
             {/* 상태 필터 */}
             <div className="flex gap-1">
@@ -122,13 +122,13 @@ export function InvitationsPage() {
             </div>
           ) : sent.isError ? (
             <div className="p-8">
-              <CenteredMessage title="불러오지 못했어요" text={sent.error.message} />
+              <CenteredMessage title="読み込めませんでした" text={sent.error.message} />
             </div>
           ) : items.length === 0 ? (
             <div className="px-5 py-14 text-center text-sm text-muted-foreground">
               {filter === 'ALL'
-                ? '아직 보낸 초대가 없어요. 오른쪽에서 알바생을 초대해보세요.'
-                : '해당 상태의 초대가 없어요.'}
+                ? 'まだ送信した招待がありません。右側からアルバイトを招待してみましょう。'
+                : 'この状態の招待はありません。'}
             </div>
           ) : (
             <>
@@ -152,7 +152,7 @@ export function InvitationsPage() {
 function InvitationRow({ invitation, isLast }: { invitation: SentInvitation; isLast: boolean }) {
   const cancel = useCancelInvitationMutation()
   const meta = STATUS_META[invitation.status]
-  const displayName = invitation.inviteeName ?? `회원 #${invitation.inviteeId}`
+  const displayName = invitation.inviteeName ?? `会員 #${invitation.inviteeId}`
   const loginId = invitation.inviteeLoginId
 
   return (
@@ -181,7 +181,7 @@ function InvitationRow({ invitation, isLast }: { invitation: SentInvitation; isL
           disabled={cancel.isPending}
           className="h-8 px-2.5 text-[13px] font-semibold text-[#F04452] hover:text-[#F04452]"
         >
-          {cancel.isPending ? <Spinner size={14} /> : '취소'}
+          {cancel.isPending ? <Spinner size={14} /> : 'キャンセル'}
         </Button>
       )}
     </div>
@@ -204,7 +204,7 @@ function Pagination({
         onClick={() => onChange(page - 1)}
         disabled={page === 0}
         className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-40"
-        aria-label="이전 페이지"
+        aria-label="前のページ"
       >
         <IconChevL size={16} />
       </button>
@@ -216,7 +216,7 @@ function Pagination({
         onClick={() => onChange(page + 1)}
         disabled={page >= totalPages - 1}
         className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary disabled:opacity-40"
-        aria-label="다음 페이지"
+        aria-label="次のページ"
       >
         <IconChevR size={16} />
       </button>
@@ -244,13 +244,13 @@ function InviteForm({ groupId }: { groupId: number }) {
         <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#EEF3FF] text-primary">
           <IconMail size={16} />
         </span>
-        <div className="text-[15px] font-extrabold">알바생 초대하기</div>
+        <div className="text-[15px] font-extrabold">アルバイトを招待</div>
       </div>
-      <p className="mb-4 text-[13px] text-muted-foreground">초대할 알바생의 로그인 아이디를 입력하세요.</p>
+      <p className="mb-4 text-[13px] text-muted-foreground">招待するアルバイトのログインIDを入力してください。</p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <Label htmlFor="inviteeLoginId" className="text-[13px] font-semibold text-muted-foreground">
-          알바 로그인 ID
+          アルバイトのログインID
         </Label>
         <Input
           id="inviteeLoginId"
@@ -270,24 +270,24 @@ function InviteForm({ groupId }: { groupId: number }) {
         )}
         {create.isSuccess && (
           <div className="mt-1 rounded-xl bg-[hsl(var(--success-bg))] px-3.5 py-3 text-[13px] font-medium text-[hsl(var(--success))]">
-            초대를 보냈어요.
+            招待を送信しました。
           </div>
         )}
 
         <Button type="submit" disabled={loginId.trim().length === 0 || create.isPending} className="mt-2 w-full font-bold">
           {create.isPending ? (
             <>
-              <Spinner /> 보내는 중…
+              <Spinner /> 送信中…
             </>
           ) : (
-            '초대 보내기'
+            '招待を送信'
           )}
         </Button>
       </form>
 
       <div className="my-4 h-px bg-border" />
       <p className="text-xs leading-relaxed text-muted-foreground">
-        알바생이 초대를 수락하면 이 그룹에 자동으로 합류해요. 수락 전까지는 <b className="text-foreground">대기 중</b> 상태로 표시됩니다.
+        アルバイトが招待を承認すると、このグループに自動的に参加します。承認までは <b className="text-foreground">保留中</b> の状態で表示されます。
       </p>
     </div>
   )
@@ -309,7 +309,7 @@ function CenteredMessage({ title, text }: { title: string; text: string }) {
 function toInviteMessage(code: string, fallback: string): string {
   switch (code) {
     case ErrorCode.MEMBER_NOT_FOUND:
-      return '해당 아이디의 회원을 찾을 수 없어요.'
+      return 'このIDの会員が見つかりません。'
     default:
       return fallback
   }

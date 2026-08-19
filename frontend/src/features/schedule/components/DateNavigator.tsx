@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { IconChevL, IconChevR } from '@/components/icons'
 import { toISODate } from '../lib/date'
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
 /** "yyyy-MM-dd" → 로컬 Date (00:00). */
 function parseISO(iso: string): Date {
@@ -51,18 +51,18 @@ export function DateNavigator({ date, onChange }: { date: string; onChange: (d: 
           type="button"
           onClick={() => shiftMonth(-1)}
           className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary"
-          aria-label="이전 달"
+          aria-label="前の月"
         >
           <IconChevL size={14} />
         </button>
         <div className="text-sm font-extrabold">
-          {view.year}년 {view.month + 1}월
+          {view.year}年 {view.month + 1}月
         </div>
         <button
           type="button"
           onClick={() => shiftMonth(1)}
           className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary"
-          aria-label="다음 달"
+          aria-label="次の月"
         >
           <IconChevR size={14} />
         </button>
@@ -121,7 +121,7 @@ export function DateNavigator({ date, onChange }: { date: string; onChange: (d: 
         onClick={() => onChange(todayISO)}
         className="mt-3 h-9 w-full text-[13px] font-semibold"
       >
-        오늘로 이동
+        今日へ移動
       </Button>
     </div>
   )

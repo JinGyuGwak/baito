@@ -7,7 +7,7 @@ export function BrandDot({ size = 22 }: { size?: number }) {
       className="grid place-items-center rounded-[7px] bg-primary font-extrabold text-white shadow-[0_4px_10px_rgba(61,106,255,0.35)]"
       style={{ width: size, height: size, fontSize: size * 0.55 }}
     >
-      시
+      シ
     </span>
   )
 }
@@ -17,7 +17,7 @@ export function BrandMark({ size = 22 }: { size?: number }) {
   return (
     <div className="flex items-center gap-2 font-extrabold tracking-tight" style={{ fontSize: size * 0.8 }}>
       <BrandDot size={size} />
-      시간표
+      シフト表
     </div>
   )
 }

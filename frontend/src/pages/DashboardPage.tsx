@@ -43,11 +43,11 @@ function OwnerDashboard() {
     <div className="px-10 pb-12 pt-8">
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">내 그룹</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">운영중인 매장(그룹)을 한 곳에서 관리하세요</p>
+          <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">マイグループ</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">運営中の店舗（グループ）を一箇所で管理しましょう</p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="font-bold">
-          <IconPlus size={16} stroke={2.5} /> 새 그룹 만들기
+          <IconPlus size={16} stroke={2.5} /> 新しいグループを作成
         </Button>
       </div>
 
@@ -85,11 +85,11 @@ function GroupCard({ group, tone }: { group: Group; tone: { bg: string; fg: stri
       </div>
       <div className="text-base font-extrabold">{group.name}</div>
       <p className="mt-1 line-clamp-2 min-h-[32px] text-xs text-muted-foreground">
-        {group.description || '설명이 없어요'}
+        {group.description || '説明がありません'}
       </p>
       <div className="my-4 h-px bg-border" />
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>오늘 현황</span>
+        <span>今日の状況</span>
         <GroupTodayStatus groupId={group.id} />
       </div>
     </Link>
@@ -111,7 +111,7 @@ function GroupTodayStatus({ groupId }: { groupId: number }) {
 
   const { totalNeeded, totalFilled, shortSlots } = computeCoverage(required.data, assignments.data)
   if (totalNeeded === 0) {
-    return <span className="font-semibold text-muted-foreground">필요 인원 미설정</span>
+    return <span className="font-semibold text-muted-foreground">必要人数未設定</span>
   }
 
   const short = shortSlots > 0
@@ -122,8 +122,8 @@ function GroupTodayStatus({ groupId }: { groupId: number }) {
       }`}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: short ? '#F59E0B' : '#10B981' }} />
-      채움 {totalFilled}/{totalNeeded}
-      {short && ' · 부족'}
+      充足 {totalFilled}/{totalNeeded}
+      {short && ' · 不足'}
     </span>
   )
 }
@@ -138,8 +138,8 @@ function AddGroupCard({ onClick }: { onClick: () => void }) {
       <span className="mb-2.5 grid h-11 w-11 place-items-center rounded-xl bg-secondary">
         <IconPlus size={20} />
       </span>
-      <span className="font-bold text-[#4E5968]">새 그룹 만들기</span>
-      <span className="mt-1 text-xs">매장을 추가로 운영중이라면</span>
+      <span className="font-bold text-[#4E5968]">新しいグループを作成</span>
+      <span className="mt-1 text-xs">別の店舗も運営している場合</span>
     </button>
   )
 }
@@ -160,10 +160,10 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#EEF3FF] text-primary">
         <IconStore size={28} />
       </span>
-      <div className="text-lg font-extrabold">아직 운영중인 그룹이 없어요</div>
-      <p className="mt-1.5 text-sm text-muted-foreground">첫 매장을 만들고 스케줄을 짜보세요.</p>
+      <div className="text-lg font-extrabold">まだ運営中のグループがありません</div>
+      <p className="mt-1.5 text-sm text-muted-foreground">最初の店舗を作ってシフトを組んでみましょう。</p>
       <Button onClick={onCreate} className="mt-5 font-bold">
-        <IconPlus size={16} stroke={2.5} /> 새 그룹 만들기
+        <IconPlus size={16} stroke={2.5} /> 新しいグループを作成
       </Button>
     </div>
   )
@@ -175,10 +175,10 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#FFECEE] text-[#F04452]">
         <IconWarn size={28} />
       </span>
-      <div className="text-lg font-extrabold">그룹을 불러오지 못했어요</div>
+      <div className="text-lg font-extrabold">グループを読み込めませんでした</div>
       <p className="mt-1.5 text-sm text-muted-foreground">{message}</p>
       <Button variant="secondary" onClick={onRetry} className="mt-5 font-bold">
-        다시 시도
+        再試行
       </Button>
     </div>
   )

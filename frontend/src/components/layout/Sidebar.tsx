@@ -65,20 +65,20 @@ export function Sidebar({ title, groups, groupHref, createHref }: SidebarProps) 
           <span className="grid h-[26px] w-[26px] place-items-center rounded-lg border-[1.5px] border-dashed border-[#D1D6DB]">
             <IconPlus size={14} />
           </span>
-          새 그룹 만들기
+          新しいグループを作成
         </Link>
       )}
 
       <div className="mt-8 px-3 pb-2 text-[11px] font-extrabold uppercase tracking-[0.06em] text-muted-foreground">
-        일반
+        一般
       </div>
       <div className="flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-sm font-semibold text-[#4E5968]">
         <IconBell size={16} />
-        알림
+        通知
       </div>
       <div className="flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-sm font-semibold text-[#4E5968]">
         <IconSettings size={16} />
-        설정
+        設定
       </div>
     </aside>
   )
