@@ -40,7 +40,7 @@ apiClient.interceptors.response.use(
 
     const normalized: ApiError = error.response?.data ?? {
       code: 'NETWORK_ERROR',
-      message: error.message || '네트워크 오류가 발생했습니다.',
+      message: error.message || 'ネットワークエラーが発生しました。',
     }
     return Promise.reject(normalized)
   },

@@ -9,23 +9,23 @@ export function AuthMarketingPanel() {
 
       <div>
         <h1 className="text-[34px] font-extrabold leading-[1.25] tracking-[-0.025em] text-foreground">
-          알바 스케줄,
+          アルバイトのシフトは、
           <br />
-          이제 드래그 한 번이면 끝.
+          ドラッグ一つで完了。
         </h1>
         <p className="mt-4 text-[15px] leading-[1.6] text-muted-foreground">
-          점주는 필요한 인원을, 아르바이트생은 가능한 시간을.
+          オーナーは必要な人数を、アルバイトは勤務可能な時間を。
           <br />
-          시간표가 자동으로 맞춰드려요.
+          シフト表が自動で調整します。
         </p>
         <div className="mt-9 flex gap-2.5">
           <Chip>
             <IconCheck size={12} stroke={2.5} />
-            30분 단위 스케줄
+            30分単位のシフト
           </Chip>
           <Chip>
             <IconCheck size={12} stroke={2.5} />
-            자동 충돌 감지
+            自動の重複検知
           </Chip>
         </div>
       </div>

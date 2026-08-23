@@ -11,15 +11,15 @@ import {
   useAssignmentCandidatesQuery,
   useAssignMembersMutation,
   useCancelAssignmentMutation,
+  buildCoverageBlocks,
   type AssignmentCandidate,
 } from '@/features/assignments'
-import { ScheduleTimeline, type TimelineBlock } from '@/features/schedule/components/ScheduleTimeline'
+import { ScheduleTimeline } from '@/features/schedule/components/ScheduleTimeline'
 import { ScheduleTabs } from '@/features/schedule/components/ScheduleTabs'
 import { formatDayTitle, toISODate } from '@/features/schedule/lib/date'
 import {
   SLOT_COUNT,
   START_HOUR,
-  countsToBlocks,
   slotToTime,
   slotsToCounts,
   timeToSlot,
@@ -40,7 +40,7 @@ export function AssignmentPage() {
   const groupId = Number(groupIdParam)
 
   const groups = useGroupsQuery()
-  const groupName = groups.data?.find((g) => g.id === groupId)?.name ?? '매장'
+  const groupName = groups.data?.find((g) => g.id === groupId)?.name ?? '店舗'
 
   const [searchParams] = useSearchParams()
   const date = searchParams.get('date') ?? toISODate(new Date())
@@ -67,7 +67,7 @@ export function AssignmentPage() {
   }, [assignments.data])
 
   const { blocks, totalNeeded, totalFilled, shortBlocks } = useMemo(
-    () => buildBlocks(requiredCounts, assignedBySlot),
+    () => buildCoverageBlocks(requiredCounts, assignedBySlot),
     [requiredCounts, assignedBySlot],
   )
 
@@ -98,7 +98,7 @@ export function AssignmentPage() {
     date === toISODate(now) ? (now.getHours() - START_HOUR) * 2 + now.getMinutes() / 30 : null
 
   if (!Number.isFinite(groupId)) {
-    return <CenteredMessage title="잘못된 접근" text="그룹을 찾을 수 없어요." />
+    return <CenteredMessage title="不正なアクセス" text="グループが見つかりません。" />
   }
 
   return (
@@ -111,21 +111,21 @@ export function AssignmentPage() {
           <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
             <span>{groupName}</span>
             <IconChevR size={12} />
-            <span className="font-bold text-foreground">알바생 배정</span>
+            <span className="font-bold text-foreground">アルバイト割り当て</span>
           </div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">{formatDayTitle(date)} — 알바생 배정</h1>
+          <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">{formatDayTitle(date)} — アルバイト割り当て</h1>
           <div className="mt-1 flex items-center gap-2 text-sm">
-            <span className="font-bold text-[#047857]">● 채움 {totalFilled} / {totalNeeded}</span>
+            <span className="font-bold text-[#047857]">● 充足 {totalFilled} / {totalNeeded}</span>
             {shortBlocks > 0 && (
               <>
                 <span className="text-[#D1D6DB]">·</span>
-                <span className="font-bold text-[#B0750A]">● {shortBlocks}개 시간대 인원 부족</span>
+                <span className="font-bold text-[#B0750A]">● {shortBlocks}件の時間帯で人数不足</span>
               </>
             )}
           </div>
         </div>
-        <Button variant="secondary" disabled title="준비 중" className="font-bold">
-          <IconSparkle size={14} /> AI 자동 배정
+        <Button variant="secondary" disabled title="準備中" className="font-bold">
+          <IconSparkle size={14} /> AI自動割り当て
         </Button>
       </div>
 
@@ -133,21 +133,21 @@ export function AssignmentPage() {
         {/* 좌: 범례 + 타임라인 */}
         <div className="flex flex-col gap-2.5">
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Legend color="#10B981" label="충원 완료" />
-            <Legend color="#F59E0B" label="인원 부족" />
-            <Legend color="#B0B8C1" label="필요 인원 미설정 배정" />
+            <Legend color="#10B981" label="充足済み" />
+            <Legend color="#F59E0B" label="人数不足" />
+            <Legend color="#B0B8C1" label="必要人数未設定の割り当て" />
             <span className="ml-auto flex items-center gap-1.5 text-muted-foreground">
-              <IconClock size={14} /> 시간대 블록을 클릭해 선택
+              <IconClock size={14} /> 時間帯ブロックをクリックして選択
             </span>
           </div>
           {isLoading ? (
             <div className="h-[784px] animate-pulse rounded-2xl border border-border bg-secondary/40" />
           ) : loadError ? (
-            <CenteredMessage title="불러오지 못했어요" text={loadError.message} />
+            <CenteredMessage title="読み込めませんでした" text={loadError.message} />
           ) : blocks.length === 0 ? (
             <CenteredMessage
-              title="설정된 필요 인원이 없어요"
-              text="필요 인원 탭에서 먼저 시간대별 필요 인원을 설정해주세요."
+              title="設定された必要人数がありません"
+              text="必要人数タブで、先に時間帯ごとの必要人数を設定してください。"
             />
           ) : (
             <ScheduleTimeline
@@ -234,31 +234,31 @@ function AssignPanel({
 
   return (
     <div className="rounded-2xl border border-border bg-card p-[18px]">
-      <div className="text-[15px] font-extrabold">알바생 배정</div>
+      <div className="text-[15px] font-extrabold">アルバイト割り当て</div>
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        타임라인에서 시간대 블록을 선택하면, 그 시간에 근무 가능한 알바생이 표시돼요.
+        タイムラインで時間帯ブロックを選択すると、その時間に勤務可能なアルバイトが表示されます。
       </p>
 
       <div className="my-4 h-px bg-border" />
 
       {!selected || !range ? (
         <div className="rounded-xl bg-[hsl(var(--field))] px-3.5 py-6 text-center text-sm text-muted-foreground">
-          시간대 블록을 클릭해 선택하세요
+          時間帯ブロックをクリックして選択してください
         </div>
       ) : (
         <>
           <div className="rounded-xl bg-[hsl(var(--field))] px-3.5 py-2.5 text-sm font-bold">
             {range.startTime} — {range.endTime}
             <span className="ml-1.5 font-medium text-muted-foreground">
-              ({selected.endSlot - selected.startSlot}개 슬롯)
+              ({selected.endSlot - selected.startSlot}スロット)
             </span>
           </div>
 
           {/* 근무 가능한 알바생 */}
           <div className="mt-4">
             <div className="mb-2 text-[13px] font-semibold text-muted-foreground">
-              근무 가능한 알바생
-              {candidates.data && candidates.data.length > 0 && ` · ${candidates.data.length}명`}
+              勤務可能なアルバイト
+              {candidates.data && candidates.data.length > 0 && ` · ${candidates.data.length}名`}
             </div>
 
             {candidates.isPending ? (
@@ -272,7 +272,7 @@ function AssignPanel({
               </div>
             ) : candidates.data.length === 0 ? (
               <div className="rounded-xl bg-[hsl(var(--field))] px-3.5 py-5 text-center text-[13px] text-muted-foreground">
-                이 시간대 전체에 근무 가능한 알바생이 없어요.
+                この時間帯すべてに勤務可能なアルバイトがいません。
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">
@@ -293,7 +293,7 @@ function AssignPanel({
             <div className="mt-3 flex flex-col gap-1.5">
               {assignMembers.data.assignedMembers > 0 && (
                 <div className="rounded-xl bg-[hsl(var(--success-bg))] px-3.5 py-3 text-[13px] font-medium text-[hsl(var(--success))]">
-                  {assignMembers.data.assignedMembers}명을 배정했어요.
+                  {assignMembers.data.assignedMembers}名を割り当てました。
                 </div>
               )}
               {assignMembers.data.failures.map((f) => (
@@ -319,22 +319,22 @@ function AssignPanel({
           >
             {assignMembers.isPending ? (
               <>
-                <Spinner /> 배정 중…
+                <Spinner /> 割り当て中…
               </>
             ) : (
-              `이 시간대에 배정${checked.size > 0 ? ` (${checked.size}명)` : ''}`
+              `この時間帯に割り当て${checked.size > 0 ? ` (${checked.size}名)` : ''}`
             )}
           </Button>
 
           {/* 배정된 알바생 (배정취소) */}
           <div className="my-4 h-px bg-border" />
           <div className="mb-2 text-[13px] font-semibold text-muted-foreground">
-            이 시간대에 배정된 알바생
-            {assignedInBlock.length > 0 && ` · ${assignedInBlock.length}명`}
+            この時間帯に割り当てられたアルバイト
+            {assignedInBlock.length > 0 && ` · ${assignedInBlock.length}名`}
           </div>
           {assignedInBlock.length === 0 ? (
             <div className="rounded-xl bg-[hsl(var(--field))] px-3.5 py-4 text-center text-[13px] text-muted-foreground">
-              아직 배정된 알바생이 없어요.
+              まだ割り当てられたアルバイトがいません。
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
@@ -355,7 +355,7 @@ function AssignPanel({
                       <Spinner size={13} />
                     ) : (
                       <>
-                        <IconX size={13} /> 배정취소
+                        <IconX size={13} /> 割り当て解除
                       </>
                     )}
                   </Button>
@@ -370,7 +370,7 @@ function AssignPanel({
           )}
           {cancel.isSuccess && (
             <div className="mt-2 rounded-xl bg-[hsl(var(--success-bg))] px-3.5 py-3 text-[13px] font-medium text-[hsl(var(--success))]">
-              {cancel.data.cancelledSlotCount}개 슬롯의 배정을 취소했어요.
+              {cancel.data.cancelledSlotCount}スロットの割り当てを解除しました。
             </div>
           )}
         </>
@@ -430,12 +430,12 @@ function CandidateRow({
           {candidate.name}
           <span className="ml-1 font-medium text-muted-foreground">({candidate.loginId})</span>
         </div>
-        <div className="truncate text-[11px] text-muted-foreground">가능: {intervals || '—'}</div>
+        <div className="truncate text-[11px] text-muted-foreground">可能: {intervals || '—'}</div>
       </div>
 
       {disabled && (
         <span className="shrink-0 rounded-full bg-[#E8EBED] px-2 py-0.5 text-[11px] font-bold text-[#6B7684]">
-          배정됨
+          割り当て済み
         </span>
       )}
     </button>
@@ -451,72 +451,6 @@ function MemberAvatar({ id, label, muted }: { id: number; label: string; muted?:
       {label.slice(0, 1)}
     </span>
   )
-}
-
-/* 슬롯 데이터 → 타임라인 블록 + 요약 통계 */
-function buildBlocks(
-  requiredCounts: number[],
-  assignedBySlot: { memberId: number; label: string }[][],
-): { blocks: TimelineBlock[]; totalNeeded: number; totalFilled: number; shortBlocks: number } {
-  const blocks: TimelineBlock[] = []
-  let shortBlocks = 0
-  let totalNeeded = 0
-  let totalFilled = 0
-
-  for (let i = 0; i < SLOT_COUNT; i++) {
-    totalNeeded += requiredCounts[i]
-    totalFilled += Math.min(assignedBySlot[i].length, requiredCounts[i])
-  }
-
-  const unionOf = (start: number, end: number) => {
-    const union = new Map<number, string>()
-    for (let i = start; i < end; i++) {
-      for (const m of assignedBySlot[i]) union.set(m.memberId, m.label)
-    }
-    return union
-  }
-
-  // 1) 필요 인원 블록 — 배정 커버리지로 색칠
-  for (const b of countsToBlocks(requiredCounts)) {
-    let maxShort = 0
-    for (let i = b.startSlot; i < b.endSlot; i++) {
-      maxShort = Math.max(maxShort, Math.max(0, b.count - assignedBySlot[i].length))
-    }
-    const union = unionOf(b.startSlot, b.endSlot)
-    const short = maxShort > 0
-    if (short) shortBlocks++
-    blocks.push({
-      key: `req-${b.startSlot}`,
-      startSlot: b.startSlot,
-      endSlot: b.endSlot,
-      tone: short ? 'warn' : 'success',
-      title: `${b.count}명 필요`,
-      sub: `${slotToTime(b.startSlot)} – ${slotToTime(b.endSlot)} · 배정 ${union.size}${short ? ` · ${maxShort}명 부족` : ' · 충원 완료'}`,
-      avatars: [...union].map(([id, label]) => ({ id, label })),
-    })
-  }
-
-  // 2) 필요 인원 미설정인데 배정된 슬롯 — 별도 표시(연속 구간으로 합침)
-  let runStart = -1
-  for (let i = 0; i <= SLOT_COUNT; i++) {
-    const extra = i < SLOT_COUNT && requiredCounts[i] === 0 && assignedBySlot[i].length > 0
-    if (runStart >= 0 && !extra) {
-      const union = unionOf(runStart, i)
-      blocks.push({
-        key: `extra-${runStart}`,
-        startSlot: runStart,
-        endSlot: i,
-        tone: 'muted',
-        title: `배정 ${union.size}명`,
-        sub: `${slotToTime(runStart)} – ${slotToTime(i)} · 필요 인원 미설정`,
-        avatars: [...union].map(([id, label]) => ({ id, label })),
-      })
-      runStart = -1
-    }
-    if (extra && runStart < 0) runStart = i
-  }
-
-  return { blocks, totalNeeded, totalFilled, shortBlocks }
 }
 
 function Legend({ color, label }: { color: string; label: string }) {
@@ -544,13 +478,13 @@ function CenteredMessage({ title, text }: { title: string; text: string }) {
 function toAssignMessage(code: string, fallback: string): string {
   switch (code) {
     case ErrorCode.SHIFT_NOT_AVAILABLE:
-      return '이 알바생이 해당 시간을 근무 가능 시간으로 등록하지 않았어요.'
+      return 'このアルバイトは、その時間を勤務可能時間として登録していません。'
     case ErrorCode.STAFF_QUOTA_EXCEEDED:
       return fallback // 서버 메시지가 이미 구체적("필요 인원이 모두 배정됨")
     case ErrorCode.NOT_GROUP_MEMBER:
-      return '이 그룹 소속 알바생이 아니에요.'
+      return 'このグループに所属するアルバイトではありません。'
     case ErrorCode.MEMBER_NOT_FOUND:
-      return '존재하지 않는 회원이에요.'
+      return '存在しない会員です。'
     default:
       return fallback
   }

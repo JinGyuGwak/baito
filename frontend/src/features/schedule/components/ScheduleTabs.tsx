@@ -8,10 +8,10 @@ type Tab = 'schedule' | 'assignments' | 'invitations' | 'members'
  */
 export function ScheduleTabs({ groupId, date, active }: { groupId: number; date: string; active: Tab }) {
   const tabs: { key: Tab; label: string; to: string }[] = [
-    { key: 'schedule', label: '필요 인원', to: `/groups/${groupId}/schedule?date=${date}` },
-    { key: 'assignments', label: '알바생 배정', to: `/groups/${groupId}/assignments?date=${date}` },
-    { key: 'invitations', label: '알바생 초대관리', to: `/groups/${groupId}/invitations` },
-    { key: 'members', label: '알바생 관리', to: `/groups/${groupId}/members` },
+    { key: 'schedule', label: '必要人数', to: `/groups/${groupId}/schedule?date=${date}` },
+    { key: 'assignments', label: 'アルバイト割り当て', to: `/groups/${groupId}/assignments?date=${date}` },
+    { key: 'invitations', label: 'アルバイト招待管理', to: `/groups/${groupId}/invitations` },
+    { key: 'members', label: 'アルバイト管理', to: `/groups/${groupId}/members` },
   ]
   return (
     <div className="mb-5 flex gap-1.5 border-b border-border">

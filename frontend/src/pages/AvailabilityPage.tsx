@@ -24,7 +24,7 @@ export function AvailabilityPage() {
   const groupId = Number(groupIdParam)
 
   const myGroups = useMyGroupsQuery()
-  const groupName = myGroups.data?.find((g) => g.id === groupId)?.name ?? '매장'
+  const groupName = myGroups.data?.find((g) => g.id === groupId)?.name ?? '店舗'
 
   const [searchParams, setSearchParams] = useSearchParams()
   const date = searchParams.get('date') ?? toISODate(new Date())
@@ -49,7 +49,7 @@ export function AvailabilityPage() {
     startSlot: b.startSlot,
     endSlot: b.endSlot,
     tone: 'success',
-    title: '근무 가능',
+    title: '勤務可能',
     sub: `${slotToTime(b.startSlot)} – ${slotToTime(b.endSlot)}`,
   }))
 
@@ -74,7 +74,7 @@ export function AvailabilityPage() {
     date === toISODate(now) ? (now.getHours() - START_HOUR) * 2 + now.getMinutes() / 30 : null
 
   if (!Number.isFinite(groupId)) {
-    return <CenteredMessage title="잘못된 접근" text="그룹을 찾을 수 없어요." />
+    return <CenteredMessage title="不正なアクセス" text="グループが見つかりません。" />
   }
 
   return (
@@ -85,11 +85,11 @@ export function AvailabilityPage() {
           <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
             <span>{groupName}</span>
             <IconChevR size={12} />
-            <span className="font-bold text-foreground">근무 가능 시간</span>
+            <span className="font-bold text-foreground">勤務可能時間</span>
           </div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">근무 가능 시간 설정</h1>
+          <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">勤務可能時間の設定</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            언제 일할 수 있는지만 알려주면, 점주님이 알맞은 시간대에 배정해드려요
+            いつ働けるかを伝えるだけで、オーナーが適切な時間帯に割り当てます
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -109,11 +109,11 @@ export function AvailabilityPage() {
           <Button onClick={handleSave} disabled={!dirty || save.isPending} className="font-bold">
             {save.isPending ? (
               <>
-                <Spinner /> 저장 중…
+                <Spinner /> 保存中…
               </>
             ) : (
               <>
-                <IconCheck size={16} stroke={2.5} /> 저장
+                <IconCheck size={16} stroke={2.5} /> 保存
               </>
             )}
           </Button>
@@ -127,7 +127,7 @@ export function AvailabilityPage() {
       )}
       {save.isSuccess && !dirty && (
         <div className="mb-4 flex items-center gap-2 rounded-xl bg-[hsl(var(--success-bg))] px-3.5 py-3 text-[13px] font-medium text-[hsl(var(--success))]">
-          <IconCheck size={16} stroke={2.5} /> 저장했어요.
+          <IconCheck size={16} stroke={2.5} /> 保存しました。
         </div>
       )}
 
@@ -136,22 +136,22 @@ export function AvailabilityPage() {
         <div className="flex flex-col gap-3">
           <DateNavigator date={date} onChange={setDate} />
           <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="mb-2.5 text-[13px] font-extrabold">빠른 설정</div>
+            <div className="mb-2.5 text-[13px] font-extrabold">クイック設定</div>
             <div className="flex flex-col gap-1.5">
               <QuickButton onClick={() => setBools(new Array(SLOT_COUNT).fill(true))}>
-                <IconCheck size={14} /> 이 날 전체 가능
+                <IconCheck size={14} /> この日すべて可能
               </QuickButton>
               <QuickButton onClick={() => setBools(new Array(SLOT_COUNT).fill(false))}>
-                <IconX size={14} /> 이 날 불가
+                <IconX size={14} /> この日は不可
               </QuickButton>
             </div>
           </div>
           <div className="rounded-2xl border border-[#DCE5FF] bg-[linear-gradient(160deg,#EEF3FF,#F8FAFF)] p-4">
             <div className="mb-2 flex items-center gap-2 text-[13px] font-extrabold">
-              <IconSparkle size={16} stroke={2} /> 꿀팁
+              <IconSparkle size={16} stroke={2} /> ワンポイント
             </div>
             <p className="text-xs leading-relaxed text-[#4E5968]">
-              넓게 등록할수록 배정받을 확률이 높아져요. 점주님은 이 시간 안에서만 배정할 수 있어요.
+              広く登録するほど割り当てられる可能性が高くなります。オーナーはこの時間内でのみ割り当てできます。
             </p>
           </div>
         </div>
@@ -159,12 +159,12 @@ export function AvailabilityPage() {
         {/* 중: 타임라인 */}
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground">
-            <IconClock size={14} /> 30분 단위 · 운영 시간 08:00 ~ 22:00
+            <IconClock size={14} /> 30分単位 · 営業時間 08:00 〜 22:00
           </div>
           {query.isPending ? (
             <div className="h-[784px] animate-pulse rounded-2xl border border-border bg-secondary/40" />
           ) : query.isError ? (
-            <CenteredMessage title="불러오지 못했어요" text={query.error.message} />
+            <CenteredMessage title="読み込めませんでした" text={query.error.message} />
           ) : (
             <ScheduleTimeline
               blocks={timelineBlocks}
@@ -174,7 +174,7 @@ export function AvailabilityPage() {
             />
           )}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <IconDrag size={14} /> 빈 영역을 드래그해 시간대를 고른 뒤 아래에서 추가하세요
+            <IconDrag size={14} /> 空いている領域をドラッグして時間帯を選び、下から追加してください
           </div>
         </div>
 
@@ -182,7 +182,7 @@ export function AvailabilityPage() {
         <div className="flex flex-col gap-3">
           {selection && (
             <div className="rounded-2xl border border-border bg-card p-[18px]">
-              <div className="text-[13px] font-semibold text-muted-foreground">선택한 시간대</div>
+              <div className="text-[13px] font-semibold text-muted-foreground">選択した時間帯</div>
               <div className="mt-1 text-lg font-extrabold">
                 {slotToTime(selection.start)} — {slotToTime(selection.end)}
               </div>
@@ -193,7 +193,7 @@ export function AvailabilityPage() {
                 }}
                 className="mt-3 w-full font-bold"
               >
-                <IconCheck size={16} stroke={2.5} /> 근무 가능으로 추가
+                <IconCheck size={16} stroke={2.5} /> 勤務可能として追加
               </Button>
               <Button
                 variant="ghost"
@@ -203,22 +203,22 @@ export function AvailabilityPage() {
                 }}
                 className="mt-2 w-full text-[13px] font-semibold text-[#F04452] hover:text-[#F04452]"
               >
-                이 시간대 제거
+                この時間帯を削除
               </Button>
             </div>
           )}
 
           <div className="rounded-2xl border border-border bg-card p-[18px]">
             <span className="inline-flex h-[26px] items-center rounded-full bg-[#E7F8F1] px-2.5 text-xs font-semibold text-[#047857]">
-              오늘의 등록
+              今日の登録
             </span>
-            <div className="mt-2.5 text-lg font-extrabold">{totalLabel} 가능</div>
-            <div className="mt-0.5 text-[13px] text-muted-foreground">{blocks.length}개 시간대 등록됨</div>
+            <div className="mt-2.5 text-lg font-extrabold">{totalLabel} 可能</div>
+            <div className="mt-0.5 text-[13px] text-muted-foreground">{blocks.length}件の時間帯を登録済み</div>
 
             <div className="my-4 h-px bg-border" />
 
             {blocks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">아직 등록한 시간이 없어요. 드래그해서 추가해보세요.</p>
+              <p className="text-sm text-muted-foreground">まだ登録した時間がありません。ドラッグして追加してみましょう。</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {blocks.map((b) => (
@@ -234,7 +234,7 @@ export function AvailabilityPage() {
                       type="button"
                       onClick={() => paint({ start: b.startSlot, end: b.endSlot }, false)}
                       className="grid place-items-center rounded p-1 text-[#047857] hover:bg-[#BBEFD8]"
-                      aria-label="삭제"
+                      aria-label="削除"
                     >
                       <IconX size={14} />
                     </button>
@@ -278,6 +278,6 @@ function formatDuration(slots: number): string {
   const minutes = slots * 30
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  if (h === 0 && m === 0) return '0시간'
-  return [h > 0 ? `${h}시간` : '', m > 0 ? `${m}분` : ''].filter(Boolean).join(' ')
+  if (h === 0 && m === 0) return '0時間'
+  return [h > 0 ? `${h}時間` : '', m > 0 ? `${m}分` : ''].filter(Boolean).join(' ')
 }

@@ -57,11 +57,11 @@ export function LoginPage() {
             <BrandMark size={24} />
           </div>
 
-          <h2 className="text-2xl font-extrabold tracking-[-0.02em]">로그인</h2>
+          <h2 className="text-2xl font-extrabold tracking-[-0.02em]">ログイン</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            아직 계정이 없나요?{' '}
+            アカウントをお持ちでないですか？{' '}
             <Link to="/signup" className="font-bold text-primary hover:underline">
-              회원가입
+              新規登録
             </Link>
           </p>
 
@@ -71,14 +71,14 @@ export function LoginPage() {
               className="mt-6 flex items-center gap-2 rounded-xl bg-[hsl(var(--success-bg))] px-3.5 py-3 text-[13px] font-medium text-[hsl(var(--success))]"
             >
               <IconCheck size={16} stroke={2.5} />
-              가입이 완료됐어요. 로그인해 주세요.
+              登録が完了しました。ログインしてください。
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5">
             <div className="flex flex-col gap-2">
               <Label htmlFor="loginId" className="text-[13px] font-semibold text-[hsl(var(--muted-foreground))]">
-                아이디
+                ID
               </Label>
               <Input
                 id="loginId"
@@ -93,13 +93,13 @@ export function LoginPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="password" className="text-[13px] font-semibold text-[hsl(var(--muted-foreground))]">
-                비밀번호
+                パスワード
               </Label>
               <Input
                 id="password"
                 type="password"
                 autoComplete="current-password"
-                placeholder="비밀번호를 입력하세요"
+                placeholder="パスワードを入力してください"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={login.isPending}
@@ -124,11 +124,11 @@ export function LoginPage() {
               {login.isPending ? (
                 <>
                   <Spinner />
-                  로그인 중…
+                  ログイン中…
                 </>
               ) : (
                 <>
-                  로그인
+                  ログイン
                   <IconArrow size={16} stroke={2} />
                 </>
               )}
@@ -138,26 +138,26 @@ export function LoginPage() {
           {/* 소셜 로그인 — 디자인 유지용. 백엔드 미지원이라 비활성 처리. */}
           <div className="my-6 flex items-center gap-2.5 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            또는
+            または
             <span className="h-px flex-1 bg-border" />
           </div>
           <div className="flex gap-2">
             <Button
               type="button"
               disabled
-              title="준비 중"
+              title="準備中"
               className="h-11 flex-1 rounded-xl bg-[#FEE500] font-bold text-[#191F28] hover:bg-[#FEE500]/90"
             >
-              카카오로 시작
+              カカオで始める
             </Button>
             <Button
               type="button"
               variant="secondary"
               disabled
-              title="준비 중"
+              title="準備中"
               className="h-11 flex-1 rounded-xl font-bold"
             >
-              Google로 시작
+              Googleで始める
             </Button>
           </div>
         </div>

@@ -27,7 +27,7 @@ export function MembersPage() {
   const today = toISODate(new Date())
 
   const groups = useGroupsQuery()
-  const groupName = groups.data?.find((g) => g.id === groupId)?.name ?? '매장'
+  const groupName = groups.data?.find((g) => g.id === groupId)?.name ?? '店舗'
 
   const members = useGroupMembersQuery(groupId)
   const [target, setTarget] = useState<GroupMember | null>(null)
@@ -35,7 +35,7 @@ export function MembersPage() {
   if (!Number.isFinite(groupId)) {
     return (
       <div className="px-8 pt-6">
-        <CenteredMessage title="잘못된 접근" text="그룹을 찾을 수 없어요." />
+        <CenteredMessage title="不正なアクセス" text="グループが見つかりません。" />
       </div>
     )
   }
@@ -50,18 +50,18 @@ export function MembersPage() {
         <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
           <span>{groupName}</span>
           <IconChevR size={12} />
-          <span className="font-bold text-foreground">알바생 관리</span>
+          <span className="font-bold text-foreground">アルバイト管理</span>
         </div>
-        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">알바생 관리</h1>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.02em]">アルバイト管理</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          이 매장에 소속된 알바생 목록이에요. 그룹에서 추방할 수 있어요.
+          この店舗に所属するアルバイトの一覧です。グループから削除できます。
         </p>
       </div>
 
       <div className="max-w-2xl rounded-2xl border border-border bg-card">
         <div className="flex items-center gap-2 border-b border-border px-5 py-3.5 text-xs font-bold uppercase tracking-[0.04em] text-muted-foreground">
           <IconUsers size={14} />
-          소속 알바생{list.length > 0 && ` · ${list.length}`}
+          所属アルバイト{list.length > 0 && ` · ${list.length}`}
         </div>
 
         {members.isPending ? (
@@ -71,11 +71,11 @@ export function MembersPage() {
           </div>
         ) : members.isError ? (
           <div className="p-8">
-            <CenteredMessage title="불러오지 못했어요" text={members.error.message} />
+            <CenteredMessage title="読み込めませんでした" text={members.error.message} />
           </div>
         ) : list.length === 0 ? (
           <div className="px-5 py-14 text-center text-sm text-muted-foreground">
-            아직 소속된 알바생이 없어요. 초대관리 탭에서 알바생을 초대해보세요.
+            まだ所属しているアルバイトがいません。招待管理タブからアルバイトを招待してみましょう。
           </div>
         ) : (
           list.map((m, i) => (
@@ -116,14 +116,14 @@ function MemberRow({
           {member.name}
           <span className="ml-1 font-medium text-muted-foreground">({member.loginId})</span>
         </div>
-        <div className="text-xs text-muted-foreground">{formatJoinedAt(member.joinedAt)} 합류</div>
+        <div className="text-xs text-muted-foreground">{formatJoinedAt(member.joinedAt)} 参加</div>
       </div>
       <Button
         variant="ghost"
         onClick={onRemove}
         className="h-8 px-2.5 text-[13px] font-semibold text-[#F04452] hover:text-[#F04452]"
       >
-        추방
+        削除
       </Button>
     </div>
   )
@@ -161,14 +161,14 @@ function RemoveMemberDialog({
     <Dialog open={member != null} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>알바생 추방</DialogTitle>
+          <DialogTitle>アルバイトを削除</DialogTitle>
           <DialogDescription>
             {member && (
               <>
                 <b className="text-foreground">
                   {member.name} ({member.loginId})
                 </b>
-                님을 그룹에서 추방할까요? 추방하면 이 알바생은 더 이상 근무에 배정되지 않아요.
+                さんをグループから削除しますか？削除すると、このアルバイトは今後シフトに割り当てられなくなります。
               </>
             )}
           </DialogDescription>
@@ -185,7 +185,7 @@ function RemoveMemberDialog({
 
         <DialogFooter>
           <Button variant="secondary" onClick={onClose} disabled={remove.isPending} className="font-bold">
-            취소
+            キャンセル
           </Button>
           <Button
             onClick={handleConfirm}
@@ -194,10 +194,10 @@ function RemoveMemberDialog({
           >
             {remove.isPending ? (
               <>
-                <Spinner /> 추방 중…
+                <Spinner /> 削除中…
               </>
             ) : (
-              '추방하기'
+              '削除する'
             )}
           </Button>
         </DialogFooter>

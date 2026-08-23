@@ -59,18 +59,18 @@ export function CreateGroupDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>새 그룹 만들기</DialogTitle>
-          <DialogDescription>그룹은 매장 단위로 만드는 걸 권장해요.</DialogDescription>
+          <DialogTitle>新しいグループを作成</DialogTitle>
+          <DialogDescription>グループは店舗単位で作成することをおすすめします。</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="group-name" className="text-[13px] font-semibold text-muted-foreground">
-              그룹 이름
+              グループ名
             </Label>
             <Input
               id="group-name"
-              placeholder="예: 연남 매장"
+              placeholder="例: 渋谷店"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={100}
@@ -80,11 +80,11 @@ export function CreateGroupDialog({
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="group-desc" className="text-[13px] font-semibold text-muted-foreground">
-              설명 (선택)
+              説明（任意）
             </Label>
             <Textarea
               id="group-desc"
-              placeholder="알바생에게 보이는 매장 소개"
+              placeholder="アルバイトに表示される店舗紹介"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={255}
@@ -100,15 +100,15 @@ export function CreateGroupDialog({
 
           <DialogFooter className="mt-2">
             <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
-              취소
+              キャンセル
             </Button>
             <Button type="submit" disabled={name.trim().length === 0 || create.isPending} className="font-bold">
               {create.isPending ? (
                 <>
-                  <Spinner /> 만드는 중…
+                  <Spinner /> 作成中…
                 </>
               ) : (
-                '만들기'
+                '作成'
               )}
             </Button>
           </DialogFooter>

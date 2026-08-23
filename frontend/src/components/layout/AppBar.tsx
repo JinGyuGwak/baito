@@ -49,10 +49,10 @@ export function AppBar({ navItems, name, roleLabel, onLogout }: AppBarProps) {
       </div>
 
       <div className="flex items-center gap-3.5">
-        <IconButton aria-label="검색">
+        <IconButton aria-label="検索">
           <IconSearch size={18} />
         </IconButton>
-        <IconButton aria-label="알림">
+        <IconButton aria-label="通知">
           <IconBell size={18} />
           <span className="absolute right-2 top-2 h-[7px] w-[7px] rounded-full border-[1.5px] border-white bg-[#F04452]" />
         </IconButton>
@@ -68,12 +68,12 @@ export function AppBar({ navItems, name, roleLabel, onLogout }: AppBarProps) {
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={() => navigate('/profile')}>
               <IconSettings size={16} />
-              프로필
+              プロフィール
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onLogout} className="text-[#F04452] focus:text-[#F04452]">
               <IconLogout size={16} />
-              로그아웃
+              ログアウト
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

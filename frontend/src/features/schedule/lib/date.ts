@@ -1,6 +1,6 @@
 /** 스케줄 화면 공통 날짜 유틸. */
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
 /** Date → "yyyy-MM-dd" (로컬 기준). */
 export function toISODate(d: Date): string {
@@ -11,7 +11,7 @@ export function toISODate(d: Date): string {
 export function formatDayTitle(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
   if (Number.isNaN(d.getTime())) return iso
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`
+  return `${d.getMonth() + 1}月${d.getDate()}日 (${WEEKDAYS[d.getDay()]})`
 }
 
 /** iso 날짜에 days 를 더한 "yyyy-MM-dd". */

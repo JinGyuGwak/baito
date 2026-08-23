@@ -9,7 +9,12 @@ export {
   type AssignMembersResult,
 } from './hooks/useAssignments'
 export { assignmentKeys } from './keys'
-export { computeCoverage, type Coverage } from './lib/coverage'
+export {
+  computeCoverage,
+  buildCoverageBlocks,
+  type Coverage,
+  type CoverageBlocks,
+} from './lib/coverage'
 export type {
   AssignmentCandidate,
   AssignmentSlot,
